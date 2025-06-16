@@ -12,9 +12,9 @@ const API_ENDPOINTS = {
 
 // Mock API keys (in production, these would be environment variables)
 const API_KEYS = {
-  moralis: process.env.VITE_MORALIS_API_KEY || 'demo-key',
-  dexScreener: process.env.VITE_DEXSCREENER_API_KEY || 'demo-key',
-  oneInch: process.env.VITE_1INCH_API_KEY || 'demo-key'
+  moralis: import.meta.env.VITE_MORALIS_API_KEY || 'demo-key',
+  dexScreener: import.meta.env.VITE_DEXSCREENER_API_KEY || 'demo-key',
+  oneInch: import.meta.env.VITE_1INCH_API_KEY || 'demo-key'
 };
 
 export const useRealTimeData = () => {
