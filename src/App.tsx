@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useStore } from './store/useStore';
+import LandingPage from './components/Landing/LandingPage';
 import Header from './components/Layout/Header';
 import Sidebar from './components/Layout/Sidebar';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -8,7 +9,7 @@ import TransactionHistory from './components/History/TransactionHistory';
 import Settings from './components/Settings/Settings';
 
 function App() {
-  const { isDarkMode, currentView } = useStore();
+  const { isDarkMode, currentView, wallet } = useStore();
 
   useEffect(() => {
     if (isDarkMode) {
@@ -17,6 +18,11 @@ function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  // Show landing page if wallet is not connected
+  if (!wallet.connected) {
+    return <LandingPage />;
+  }
 
   const renderCurrentView = () => {
     switch (currentView) {

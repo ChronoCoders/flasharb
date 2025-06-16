@@ -2,7 +2,15 @@ import React, { useState } from 'react';
 import { Wallet, ChevronDown } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 
-const WalletButton: React.FC = () => {
+interface WalletButtonProps {
+  variant?: 'default' | 'landing';
+  size?: 'default' | 'large';
+}
+
+const WalletButton: React.FC<WalletButtonProps> = ({ 
+  variant = 'default',
+  size = 'default'
+}) => {
   const { wallet, setWallet } = useStore();
   const [isConnecting, setIsConnecting] = useState(false);
 
@@ -48,7 +56,13 @@ const WalletButton: React.FC = () => {
       <button
         onClick={connectWallet}
         disabled={isConnecting}
-        className="flex items-center space-x-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-primary-400 text-white rounded-lg transition-colors"
+        className={`flex items-center space-x-2 text-white rounded-lg transition-colors ${
+          variant === 'landing'
+            ? 'px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-blue-400 disabled:to-purple-500'
+            : 'px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-primary-400'
+        } ${
+          size === 'large' ? 'text-lg font-semibold' : 'text-sm font-medium'
+        }`}
       >
         <Wallet className="w-4 h-4" />
         <span>{isConnecting ? 'Connecting...' : 'Connect Wallet'}</span>
