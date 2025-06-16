@@ -1,6 +1,9 @@
 import React from 'react';
-import { Play, Pause, Settings, AlertTriangle } from 'lucide-react';
+import { Play, Pause, Settings, AlertTriangle, DollarSign } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import BacktestingInterface from '../Analytics/BacktestingInterface';
+import ProfitCalculator from '../Analytics/ProfitCalculator';
+import RiskAnalysis from '../Analytics/RiskAnalysis';
 
 const TradingInterface: React.FC = () => {
   const { 
@@ -9,15 +12,24 @@ const TradingInterface: React.FC = () => {
     botActive, 
     setBotActive 
   } = useStore();
+  
+  const [activeTab, setActiveTab] = React.useState<'config' | 'backtest' | 'calculator' | 'risk'>('config');
 
   const tokens = ['ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'AAVE'];
   const exchanges = ['Uniswap V2', 'Uniswap V3', 'SushiSwap', '1inch', 'Balancer'];
+
+  const tabs = [
+    { id: 'config', label: 'Configuration', icon: Settings },
+    { id: 'backtest', label: 'Backtesting', icon: TrendingUp },
+    { id: 'calculator', label: 'Calculator', icon: DollarSign },
+    { id: 'risk', label: 'Risk Analysis', icon: AlertTriangle }
+  ] as const;
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Trading Configuration
+          Trading Interface
         </h1>
         <button
           onClick={() => setBotActive(!botActive)}
@@ -32,6 +44,31 @@ const TradingInterface: React.FC = () => {
         </button>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="-mb-px flex space-x-8">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.id
+                    ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'config' && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Token Selection */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
@@ -198,6 +235,11 @@ const TradingInterface: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
+
+      {activeTab === 'backtest' && <BacktestingInterface />}
+      {activeTab === 'calculator' && <ProfitCalculator />}
+      {activeTab === 'risk' && <RiskAnalysis />}
 
       {/* Warning */}
       <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">

@@ -4,6 +4,8 @@ import { useStore } from '../../store/useStore';
 import StatsCard from './StatsCard';
 import OpportunityCard from './OpportunityCard';
 import ProfitChart from './ProfitChart';
+import NetworkStatus from './NetworkStatus';
+import PriceComparisonTable from '../UI/PriceComparisonTable';
 import { ArbitrageOpportunity } from '../../types';
 
 const Dashboard: React.FC = () => {
@@ -162,10 +164,22 @@ const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Profit Chart */}
-        <div className="lg:col-span-1">
+        <div>
           <ProfitChart />
         </div>
 
+        {/* Network Status */}
+        <div>
+          <NetworkStatus />
+        </div>
+      </div>
+
+      {/* Price Comparison Table */}
+      <div>
+        <PriceComparisonTable />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         {/* Opportunities List */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
