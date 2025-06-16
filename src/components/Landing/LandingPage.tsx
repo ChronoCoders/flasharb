@@ -336,7 +336,9 @@ const LandingPage: React.FC = () => {
           <p className="text-xl text-gray-300 mb-8">
             Connect your wallet and start executing profitable arbitrage trades in minutes.
           </p>
-          <WalletButton variant="landing" size="large" />
+          <div className="flex justify-center">
+            <WalletButton variant="landing" size="large" />
+          </div>
         </div>
       </div>
 
