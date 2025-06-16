@@ -16,9 +16,8 @@ const Dashboard: React.FC = () => {
     addTransaction 
   } = useStore();
   
-  const { opportunities, prices, gasPrice, networkStats, isLoading, error, isDemoMode } = useRealTimeData();
+  const { opportunities, prices, gasPrice, networkStats, isLoading, error, refreshData } = useRealTimeData();
   const { executeArbitrage, isExecuting } = useArbitrageContract();
-
 
   const handleExecuteTrade = async (opportunityId: string) => {
     const opportunity = opportunities.find(opp => opp.id === opportunityId);
@@ -64,26 +63,36 @@ const Dashboard: React.FC = () => {
   if (error) {
     return (
       <div className="p-6">
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
-            Running in Demo Mode
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+            Real-Time Data Connection Error
           </h3>
-          <p className="text-yellow-700 dark:text-yellow-300 mb-4">
-            Using mock data for demonstration. Real-time data connection failed: {error}
-          </p>
-          <div className="text-sm text-yellow-600 dark:text-yellow-400">
-            <p className="mb-2">To connect to real-time data, please:</p>
+          <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
+          <div className="text-sm text-red-600 dark:text-red-400 mb-4">
+            <p className="mb-2">To connect to real-time data, please ensure you have:</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>Create a .env file by copying .env.example</li>
-              <li>Add your VITE_ETHERSCAN_API_KEY for gas prices</li>
-              <li>Add your VITE_COINGECKO_API_KEY for token prices (optional)</li>
-              <li>Restart the development server after adding API keys</li>
-              <li>Ensure your internet connection allows API access</li>
+              <li>Valid API keys configured in your environment variables</li>
+              <li>VITE_ETHERSCAN_API_KEY for gas prices and network data (required)</li>
+              <li>VITE_COINGECKO_API_KEY for token prices (optional but recommended)</li>
+              <li>Stable internet connection</li>
+              <li>No firewall blocking API requests</li>
             </ul>
-            <p className="mt-3 text-xs">
-              <strong>Note:</strong> The application will continue to work with mock data for demonstration purposes.
-              All features are functional, but prices and opportunities are simulated.
-            </p>
+          </div>
+          <div className="flex space-x-3">
+            <button
+              onClick={refreshData}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+            >
+              Retry Connection
+            </button>
+            <a
+              href="https://etherscan.io/apis"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Get Etherscan API Key
+            </a>
           </div>
         </div>
       </div>
@@ -96,17 +105,20 @@ const Dashboard: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Dashboard
         </h1>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-sm text-gray-600 dark:text-gray-400">
-            {isLoading ? 'Loading Data...' : 
-             isDemoMode ? 'Demo Mode - Mock Data' : 'Live Market Data Connected'}
-          </span>
-          {isDemoMode && (
-            <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded">
-              DEMO
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              {isLoading ? 'Connecting to Real-Time Data...' : 'Live Market Data Connected'}
             </span>
-          )}
+          </div>
+          <button
+            onClick={refreshData}
+            disabled={isLoading}
+            className="px-3 py-1 text-xs bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 text-white rounded transition-colors"
+          >
+            {isLoading ? 'Refreshing...' : 'Refresh'}
+          </button>
         </div>
       </div>
 
@@ -133,7 +145,7 @@ const Dashboard: React.FC = () => {
           color="yellow"
         />
         <StatsCard
-          title="24h P&L"
+          title="Current Gas Price"
           value={`${gasPrice.toFixed(1)} gwei`}
           change={gasPrice > 30 ? -5.2 : 3.1}
           icon={TrendingUp}
@@ -168,10 +180,7 @@ const Dashboard: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {isDemoMode ? 'Demo Arbitrage Opportunities' : 'Real-Time Arbitrage Opportunities'}
-              {isDemoMode && (
-                <span className="text-sm font-normal text-yellow-600 dark:text-yellow-400 ml-2">(Simulated)</span>
-              )}
+              Real-Time Arbitrage Opportunities
             </h2>
             <span className="text-sm text-gray-500 dark:text-gray-400">
               {opportunities.filter(opp => opp.netProfit > 0).length} profitable
@@ -181,20 +190,18 @@ const Dashboard: React.FC = () => {
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
-              <p className="text-gray-500 dark:text-gray-400">
-                {isDemoMode ? 'Loading demo opportunities...' : 'Loading real-time opportunities...'}
-              </p>
+              <p className="text-gray-500 dark:text-gray-400">Loading real-time opportunities...</p>
             </div>
           ) : opportunities.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500 dark:text-gray-400">
-                {isDemoMode 
-                  ? 'No profitable demo opportunities available at current simulated gas prices.'
-                  : 'No profitable arbitrage opportunities found at current gas prices.'
-                }
+                No profitable arbitrage opportunities found at current gas prices.
               </p>
               <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
                 Current gas price: {gasPrice.toFixed(1)} gwei
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                Opportunities will appear when price differences exceed gas costs
               </p>
             </div>
           ) : (
