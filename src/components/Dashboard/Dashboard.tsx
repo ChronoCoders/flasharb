@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { DollarSign, TrendingUp, Activity, Target } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import { useRealTimeData } from '../../hooks/useRealTimeData';
+import { useArbitrageContract } from '../../hooks/useArbitrageContract';
 import StatsCard from './StatsCard';
 import OpportunityCard from './OpportunityCard';
 import ProfitChart from './ProfitChart';
@@ -10,53 +12,16 @@ import { ArbitrageOpportunity } from '../../types';
 
 const Dashboard: React.FC = () => {
   const { 
-    opportunities, 
-    setOpportunities, 
     portfolio, 
     setPortfolio,
     addTransaction 
   } = useStore();
+  
+  const { opportunities, prices, gasPrice, networkStats, isLoading, error } = useRealTimeData();
+  const { executeArbitrage, isExecuting } = useArbitrageContract();
 
   // Mock data generation
   useEffect(() => {
-    const generateMockOpportunities = (): ArbitrageOpportunity[] => {
-      const tokens = ['ETH/USDC', 'WBTC/ETH', 'USDT/DAI', 'LINK/ETH'];
-      const exchanges = ['Uniswap V2', 'Uniswap V3', 'SushiSwap', '1inch'];
-      
-      return Array.from({ length: 6 }, (_, i) => {
-        const tokenPair = tokens[Math.floor(Math.random() * tokens.length)];
-        const exchangeA = exchanges[Math.floor(Math.random() * exchanges.length)];
-        let exchangeB = exchanges[Math.floor(Math.random() * exchanges.length)];
-        while (exchangeB === exchangeA) {
-          exchangeB = exchanges[Math.floor(Math.random() * exchanges.length)];
-        }
-        
-        const priceA = 1000 + Math.random() * 2000;
-        const priceDiff = (Math.random() - 0.5) * 5; // -2.5% to +2.5%
-        const priceB = priceA * (1 + priceDiff / 100);
-        const potentialProfit = Math.abs(priceA - priceB) * (5 + Math.random() * 10);
-        const gasEstimate = 15 + Math.random() * 25;
-        const netProfit = potentialProfit - gasEstimate;
-        
-        return {
-          id: `opp-${i}`,
-          tokenPair,
-          tokenA: tokenPair.split('/')[0],
-          tokenB: tokenPair.split('/')[1],
-          exchangeA,
-          exchangeB,
-          priceA,
-          priceB,
-          priceDifference: Math.abs(priceDiff),
-          potentialProfit,
-          gasEstimate,
-          netProfit,
-          timestamp: Date.now() - Math.random() * 60000,
-          status: 'active' as const,
-        };
-      });
-    };
-
     // Set mock portfolio data
     setPortfolio({
       totalBalance: 12.45,
@@ -67,55 +32,58 @@ const Dashboard: React.FC = () => {
       weeklyPnL: 234.56,
       monthlyPnL: 445.67,
     });
+  }, [setPortfolio]);
 
-    // Generate initial opportunities
-    setOpportunities(generateMockOpportunities());
-
-    // Update opportunities every 5 seconds
-    const interval = setInterval(() => {
-      setOpportunities(generateMockOpportunities());
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [setOpportunities, setPortfolio]);
-
-  const handleExecuteTrade = (opportunityId: string) => {
+  const handleExecuteTrade = async (opportunityId: string) => {
     const opportunity = opportunities.find(opp => opp.id === opportunityId);
     if (!opportunity) return;
 
-    // Update opportunity status
-    setOpportunities(opportunities.map(opp => 
-      opp.id === opportunityId 
-        ? { ...opp, status: 'executing' as const }
-        : opp
-    ));
-
-    // Simulate trade execution
-    setTimeout(() => {
-      const success = Math.random() > 0.2; // 80% success rate
+    try {
+      // Execute real arbitrage trade
+      const result = await executeArbitrage(opportunity);
       
       addTransaction({
         id: `tx-${Date.now()}`,
-        hash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        hash: result.hash,
         type: 'arbitrage',
         tokenPair: opportunity.tokenPair,
-        amount: 5 + Math.random() * 10,
-        profit: success ? opportunity.netProfit : -opportunity.gasEstimate,
-        gasUsed: 150000 + Math.random() * 50000,
+        amount: opportunity.amount,
+        profit: result.success ? opportunity.netProfit : -opportunity.gasEstimate,
+        gasUsed: parseInt(result.gasUsed),
         gasCost: opportunity.gasEstimate,
-        status: success ? 'success' : 'failed',
+        status: result.success ? 'success' : 'failed',
         timestamp: Date.now(),
         exchanges: [opportunity.exchangeA, opportunity.exchangeB],
       });
-
-      // Update opportunity status
-      setOpportunities(prev => prev.map(opp => 
-        opp.id === opportunityId 
-          ? { ...opp, status: success ? 'completed' : 'failed' }
-          : opp
-      ));
-    }, 3000);
+      
+    } catch (error) {
+      console.error('Trade execution failed:', error);
+      
+      addTransaction({
+        id: `tx-${Date.now()}`,
+        hash: '',
+        type: 'arbitrage',
+        tokenPair: opportunity.tokenPair,
+        amount: opportunity.amount,
+        profit: -opportunity.gasEstimate,
+        gasUsed: 0,
+        gasCost: opportunity.gasEstimate,
+        status: 'failed',
+        timestamp: Date.now(),
+        exchanges: [opportunity.exchangeA, opportunity.exchangeB],
+      });
+    }
   };
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <p className="text-red-700 dark:text-red-300">Error loading data: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -126,7 +94,7 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
           <span className="text-sm text-gray-600 dark:text-gray-400">
-            Live Market Data
+            Live Market Data {isLoading && '(Loading...)'}
           </span>
         </div>
       </div>
@@ -199,6 +167,7 @@ const Dashboard: React.FC = () => {
                   key={opportunity.id}
                   opportunity={opportunity}
                   onExecute={handleExecuteTrade}
+                  isExecuting={isExecuting}
                 />
               ))}
           </div>

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Play, Pause, Settings, AlertTriangle, DollarSign } from 'lucide-react';
+import { Play, Pause, Settings, AlertTriangle, DollarSign, Code } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import BacktestingInterface from '../Analytics/BacktestingInterface';
 import ProfitCalculator from '../Analytics/ProfitCalculator';
 import RiskAnalysis from '../Analytics/RiskAnalysis';
+import ContractManager from './ContractManager';
 
 const TradingInterface: React.FC = () => {
   const { 
@@ -13,7 +14,7 @@ const TradingInterface: React.FC = () => {
     setBotActive 
   } = useStore();
   
-  const [activeTab, setActiveTab] = React.useState<'config' | 'backtest' | 'calculator' | 'risk'>('config');
+  const [activeTab, setActiveTab] = React.useState<'config' | 'backtest' | 'calculator' | 'risk' | 'contracts'>('config');
 
   const tokens = ['ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK', 'UNI', 'AAVE'];
   const exchanges = ['Uniswap V2', 'Uniswap V3', 'SushiSwap', '1inch', 'Balancer'];
@@ -22,7 +23,8 @@ const TradingInterface: React.FC = () => {
     { id: 'config', label: 'Configuration', icon: Settings },
     { id: 'backtest', label: 'Backtesting', icon: TrendingUp },
     { id: 'calculator', label: 'Calculator', icon: DollarSign },
-    { id: 'risk', label: 'Risk Analysis', icon: AlertTriangle }
+    { id: 'risk', label: 'Risk Analysis', icon: AlertTriangle },
+    { id: 'contracts', label: 'Smart Contracts', icon: Code }
   ] as const;
 
   return (
@@ -240,6 +242,7 @@ const TradingInterface: React.FC = () => {
       {activeTab === 'backtest' && <BacktestingInterface />}
       {activeTab === 'calculator' && <ProfitCalculator />}
       {activeTab === 'risk' && <RiskAnalysis />}
+      {activeTab === 'contracts' && <ContractManager />}
 
       {/* Warning */}
       <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">

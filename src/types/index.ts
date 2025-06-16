@@ -11,8 +11,11 @@ export interface ArbitrageOpportunity {
   potentialProfit: number;
   gasEstimate: number;
   netProfit: number;
+  amount: number;
   timestamp: number;
   status: 'active' | 'executing' | 'completed' | 'failed';
+  exchanges: string[];
+  slippage?: number;
 }
 
 export interface TokenPrice {

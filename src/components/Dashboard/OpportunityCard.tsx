@@ -5,9 +5,10 @@ import { ArbitrageOpportunity } from '../../types';
 interface OpportunityCardProps {
   opportunity: ArbitrageOpportunity;
   onExecute: (id: string) => void;
+  isExecuting?: boolean;
 }
 
-const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, onExecute }) => {
+const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, onExecute, isExecuting = false }) => {
   const profitColor = opportunity.netProfit > 0 ? 'text-green-500' : 'text-red-500';
   const profitBg = opportunity.netProfit > 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20';
 
@@ -68,11 +69,11 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, onExecut
         </div>
         <button
           onClick={() => onExecute(opportunity.id)}
-          disabled={opportunity.netProfit <= 0 || opportunity.status !== 'active'}
+          disabled={opportunity.netProfit <= 0 || opportunity.status !== 'active' || isExecuting}
           className="flex items-center space-x-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-400 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
         >
           <Zap className="w-4 h-4" />
-          <span>Execute</span>
+          <span>{isExecuting ? 'Executing...' : 'Execute'}</span>
         </button>
       </div>
     </div>
