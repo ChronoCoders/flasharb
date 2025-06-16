@@ -347,7 +347,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="text-gray-400 text-sm">
-              © 2024 FlashArb. Built for the DeFi revolution.
+              © 2025 FlashArb. Built for the DeFi revolution.
             </div>
           </div>
         </div>
