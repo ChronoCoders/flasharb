@@ -1,45 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, Zap, Clock, TrendingUp } from 'lucide-react';
 
-interface NetworkData {
-  gasPrice: {
-    slow: number;
-    standard: number;
-    fast: number;
-  };
-  blockNumber: number;
-  blockTime: number;
-  congestion: 'low' | 'medium' | 'high';
-  mevActivity: number;
+interface NetworkStatusProps {
+  gasPrice?: number;
+  blockNumber?: number;
+  blockTime?: number;
+  congestion?: 'low' | 'medium' | 'high';
 }
 
-const NetworkStatus: React.FC = () => {
-  const [networkData, setNetworkData] = useState<NetworkData>({
-    gasPrice: { slow: 15, standard: 25, fast: 35 },
-    blockNumber: 18500000,
-    blockTime: 12.5,
-    congestion: 'medium',
+const NetworkStatus: React.FC<NetworkStatusProps> = ({
+  gasPrice = 25,
+  blockNumber = 18500000,
+  blockTime = 12.5,
+  congestion = 'medium'
+}) => {
+  const [networkData, setNetworkData] = useState({
+    gasPrice: {
+      slow: gasPrice - 5,
+      standard: gasPrice,
+      fast: gasPrice + 10
+    },
+    blockNumber,
+    blockTime,
+    congestion,
     mevActivity: 23
   });
 
   useEffect(() => {
-    const updateNetworkData = () => {
-      setNetworkData(prev => ({
-        gasPrice: {
-          slow: 12 + Math.random() * 8,
-          standard: 20 + Math.random() * 15,
-          fast: 30 + Math.random() * 20
-        },
-        blockNumber: prev.blockNumber + Math.floor(Math.random() * 3),
-        blockTime: 11 + Math.random() * 3,
-        congestion: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as any,
-        mevActivity: 15 + Math.random() * 20
-      }));
-    };
-
-    const interval = setInterval(updateNetworkData, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    setNetworkData(prev => ({
+      ...prev,
+      gasPrice: {
+        slow: gasPrice - 5,
+        standard: gasPrice,
+        fast: gasPrice + 10
+      },
+      blockNumber,
+      blockTime,
+      congestion
+    }));
+  }, [gasPrice, blockNumber, blockTime, congestion]);
 
   const getCongestionColor = (level: string) => {
     switch (level) {
@@ -48,6 +47,10 @@ const NetworkStatus: React.FC = () => {
       case 'high': return 'text-red-500 bg-red-50 dark:bg-red-900/20';
       default: return 'text-gray-500 bg-gray-50 dark:bg-gray-900/20';
     }
+  };
+
+  const formatBlockNumber = (blockNum: number) => {
+    return blockNum.toLocaleString();
   };
 
   return (
@@ -62,7 +65,7 @@ const NetworkStatus: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
           <Zap className="w-6 h-6 text-blue-500 mx-auto mb-2" />
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Standard Gas</div>
@@ -74,8 +77,8 @@ const NetworkStatus: React.FC = () => {
         <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
           <Activity className="w-6 h-6 text-green-500 mx-auto mb-2" />
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Block Number</div>
-          <div className="text-xl font-bold text-gray-900 dark:text-white">
-            {networkData.blockNumber.toLocaleString()}
+          <div className="text-lg font-bold text-gray-900 dark:text-white break-all">
+            {formatBlockNumber(networkData.blockNumber)}
           </div>
         </div>
 
