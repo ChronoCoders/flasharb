@@ -98,7 +98,15 @@ const WalletButton: React.FC<WalletButtonProps> = ({
       });
 
       window.ethereum.on('chainChanged', (chainId: string) => {
-        const newNetwork = networkMap[chainId] || networkMap['0x1'];
+        const networkId = parseInt(chainId, 16);
+        const newNetwork = {
+          chainId: networkId,
+          name: getNetworkName(networkId),
+          symbol: getNetworkSymbol(networkId),
+          rpcUrl: getNetworkRpcUrl(networkId),
+          blockExplorer: getNetworkExplorer(networkId),
+        };
+        
         setWallet(prev => ({
           ...prev,
           network: {
@@ -185,6 +193,47 @@ const WalletButton: React.FC<WalletButtonProps> = ({
       </div>
     </div>
   );
+};
+
+// Helper functions for network information
+const getNetworkName = (chainId: number): string => {
+  const names: Record<number, string> = {
+    1: 'Ethereum',
+    56: 'BSC',
+    137: 'Polygon',
+    42161: 'Arbitrum'
+  };
+  return names[chainId] || 'Unknown Network';
+};
+
+const getNetworkSymbol = (chainId: number): string => {
+  const symbols: Record<number, string> = {
+    1: 'ETH',
+    56: 'BNB',
+    137: 'MATIC',
+    42161: 'ETH'
+  };
+  return symbols[chainId] || 'ETH';
+};
+
+const getNetworkRpcUrl = (chainId: number): string => {
+  const rpcs: Record<number, string> = {
+    1: 'https://mainnet.infura.io/v3/',
+    56: 'https://bsc-dataseed1.binance.org/',
+    137: 'https://polygon-rpc.com/',
+    42161: 'https://arb1.arbitrum.io/rpc'
+  };
+  return rpcs[chainId] || 'https://mainnet.infura.io/v3/';
+};
+
+const getNetworkExplorer = (chainId: number): string => {
+  const explorers: Record<number, string> = {
+    1: 'https://etherscan.io',
+    56: 'https://bscscan.com',
+    137: 'https://polygonscan.com',
+    42161: 'https://arbiscan.io'
+  };
+  return explorers[chainId] || 'https://etherscan.io';
 };
 
 export default WalletButton;
