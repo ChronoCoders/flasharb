@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, Settings, AlertTriangle, DollarSign, Code } from 'lucide-react';
+import { Play, Pause, Settings, AlertTriangle, DollarSign, Code, TrendingUp } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import BacktestingInterface from '../Analytics/BacktestingInterface';
 import ProfitCalculator from '../Analytics/ProfitCalculator';
