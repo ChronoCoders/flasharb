@@ -70,6 +70,47 @@ const WalletButton: React.FC<WalletButtonProps> = ({
           blockExplorer: 'https://bscscan.com',
         }
       };
+
+      const currentNetwork = networkMap[chainId] || networkMap['0x1'];
+      
+      // Set wallet state
+      setWallet({
+        address: accounts[0],
+        balance: balanceInEth,
+        network: {
+          ...currentNetwork,
+          gasPrice: 0,
+          blockNumber: 0
+        },
+        connected: true,
+      });
+
+      // Set up event listeners for account and network changes
+      window.ethereum.on('accountsChanged', (accounts: string[]) => {
+        if (accounts.length === 0) {
+          disconnectWallet();
+        } else {
+          setWallet(prev => ({
+            ...prev,
+            address: accounts[0]
+          }));
+        }
+      });
+
+      window.ethereum.on('chainChanged', (chainId: string) => {
+        const newNetwork = networkMap[chainId] || networkMap['0x1'];
+        setWallet(prev => ({
+          ...prev,
+          network: {
+            ...newNetwork,
+            gasPrice: prev.network?.gasPrice || 0,
+            blockNumber: prev.network?.blockNumber || 0
+          }
+        }));
+      });
+
+      setIsConnecting(false);
+      
     } catch (error) {
       console.error('Failed to connect wallet:', error);
       alert(`Failed to connect wallet: ${error instanceof Error ? error.message : 'Unknown error'}`);
