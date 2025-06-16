@@ -18,31 +18,72 @@ const WalletButton: React.FC<WalletButtonProps> = ({
     setIsConnecting(true);
     
     try {
-      // Simulate wallet connection
-      setTimeout(() => {
-        setWallet({
-          address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b',
-          balance: 2.45,
-          network: {
-            chainId: 1,
-            name: 'Ethereum',
-            symbol: 'ETH',
-            rpcUrl: 'https://mainnet.infura.io/v3/',
-            blockExplorer: 'https://etherscan.io',
-            gasPrice: 25,
-            blockNumber: 18500000,
-          },
-          connected: true,
-        });
-        setIsConnecting(false);
-      }, 1500);
+      // Check if MetaMask is installed
+      if (typeof window.ethereum === 'undefined') {
+        throw new Error('MetaMask is not installed. Please install MetaMask to continue.');
+      }
+
+      // Request account access
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
+
+      if (accounts.length === 0) {
+        throw new Error('No accounts found. Please connect your wallet.');
+      }
+
+      // Get network information
+      const chainId = await window.ethereum.request({
+        method: 'eth_chainId',
+      });
+
+      // Get balance
+      const balance = await window.ethereum.request({
+        method: 'eth_getBalance',
+        params: [accounts[0], 'latest'],
+      });
+
+      // Convert balance from wei to ETH
+      const balanceInEth = parseInt(balance, 16) / Math.pow(10, 18);
+
+      // Get network details
+      const networkMap: Record<string, any> = {
+        '0x1': {
+          chainId: 1,
+          name: 'Ethereum',
+          symbol: 'ETH',
+          rpcUrl: 'https://mainnet.infura.io/v3/',
+          blockExplorer: 'https://etherscan.io',
+        },
+        '0x89': {
+          chainId: 137,
+          name: 'Polygon',
+          symbol: 'MATIC',
+          rpcUrl: 'https://polygon-rpc.com/',
+          blockExplorer: 'https://polygonscan.com',
+        },
+        '0x38': {
+          chainId: 56,
+          name: 'BSC',
+          symbol: 'BNB',
+          rpcUrl: 'https://bsc-dataseed1.binance.org/',
+          blockExplorer: 'https://bscscan.com',
+        }
+      };
     } catch (error) {
       console.error('Failed to connect wallet:', error);
+      alert(`Failed to connect wallet: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setIsConnecting(false);
     }
   };
 
   const disconnectWallet = () => {
+    // Remove event listeners
+    if (window.ethereum) {
+      window.ethereum.removeAllListeners('accountsChanged');
+      window.ethereum.removeAllListeners('chainChanged');
+    }
+    
     setWallet({
       address: null,
       balance: 0,

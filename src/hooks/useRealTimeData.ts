@@ -1,181 +1,404 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ArbitrageOpportunity, TokenPrice } from '../types';
 
-// API endpoints
+// Real API endpoints
 const API_ENDPOINTS = {
   dexScreener: 'https://api.dexscreener.com/latest/dex',
   coingecko: 'https://api.coingecko.com/api/v3',
   oneInch: 'https://api.1inch.io/v5.0/1',
   moralis: 'https://deep-index.moralis.io/api/v2',
-  blocknative: 'https://api.blocknative.com'
+  blocknative: 'https://api.blocknative.com',
+  etherscan: 'https://api.etherscan.io/api',
+  uniswap: 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',
+  sushiswap: 'https://api.thegraph.com/subgraphs/name/sushiswap/exchange'
 };
 
-// Mock API keys (in production, these would be environment variables)
+// Environment variables for API keys
 const API_KEYS = {
-  moralis: import.meta.env.VITE_MORALIS_API_KEY || 'demo-key',
-  dexScreener: import.meta.env.VITE_DEXSCREENER_API_KEY || 'demo-key',
-  oneInch: import.meta.env.VITE_1INCH_API_KEY || 'demo-key'
+  moralis: import.meta.env.VITE_MORALIS_API_KEY,
+  dexScreener: import.meta.env.VITE_DEXSCREENER_API_KEY,
+  oneInch: import.meta.env.VITE_1INCH_API_KEY,
+  coingecko: import.meta.env.VITE_COINGECKO_API_KEY,
+  blocknative: import.meta.env.VITE_BLOCKNATIVE_API_KEY,
+  etherscan: import.meta.env.VITE_ETHERSCAN_API_KEY
+};
+
+// Token addresses on Ethereum mainnet
+const TOKEN_ADDRESSES = {
+  'ETH': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH
+  'USDC': '0xA0b86a33E6417c4c6b8c4c6b8c4c6b8c4c6b8c4c',
+  'USDT': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  'DAI': '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+  'WBTC': '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+  'LINK': '0x514910771AF9Ca656af840dff83E8264EcF986CA'
 };
 
 export const useRealTimeData = () => {
   const [prices, setPrices] = useState<Record<string, TokenPrice>>({});
   const [opportunities, setOpportunities] = useState<ArbitrageOpportunity[]>([]);
-  const [gasPrice, setGasPrice] = useState<number>(25);
+  const [gasPrice, setGasPrice] = useState<number>(0);
   const [networkStats, setNetworkStats] = useState({
-    blockNumber: 18500000,
-    blockTime: 12.5,
+    blockNumber: 0,
+    blockTime: 0,
     congestion: 'medium' as 'low' | 'medium' | 'high',
-    mevActivity: 23
+    mevActivity: 0
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch live prices from multiple DEXs
-  const fetchLivePrices = useCallback(async (tokens: string[]) => {
+  // Fetch real gas prices from Etherscan
+  const fetchRealGasPrice = useCallback(async () => {
     try {
-      const pricePromises = tokens.map(async (token) => {
-        // Simulate fetching from multiple DEXs
-        const basePrice = getBasePrice(token);
-        const variance = 0.005; // 0.5% variance between DEXs
+      const response = await fetch(
+        `${API_ENDPOINTS.etherscan}?module=gastracker&action=gasoracle&apikey=${API_KEYS.etherscan}`
+      );
+      const data = await response.json();
+      
+      if (data.status === '1') {
+        const standardGas = parseFloat(data.result.ProposeGasPrice);
+        setGasPrice(standardGas);
+        return standardGas;
+      }
+      throw new Error('Failed to fetch gas price');
+    } catch (error) {
+      console.error('Gas price fetch failed:', error);
+      // Fallback to Blocknative if Etherscan fails
+      try {
+        const response = await fetch(`${API_ENDPOINTS.blocknative}/gasprices/blockprices`, {
+          headers: {
+            'Authorization': API_KEYS.blocknative || ''
+          }
+        });
+        const data = await response.json();
+        const standardGas = data.blockPrices[0]?.estimatedPrices[1]?.price || 25;
+        setGasPrice(standardGas);
+        return standardGas;
+      } catch (fallbackError) {
+        console.error('Blocknative gas price fetch failed:', fallbackError);
+        return gasPrice;
+      }
+    }
+  }, [gasPrice]);
+
+  // Fetch real network stats from Etherscan
+  const fetchRealNetworkStats = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `${API_ENDPOINTS.etherscan}?module=proxy&action=eth_blockNumber&apikey=${API_KEYS.etherscan}`
+      );
+      const data = await response.json();
+      
+      if (data.result) {
+        const blockNumber = parseInt(data.result, 16);
+        
+        // Fetch block details for timing
+        const blockResponse = await fetch(
+          `${API_ENDPOINTS.etherscan}?module=proxy&action=eth_getBlockByNumber&tag=${data.result}&boolean=true&apikey=${API_KEYS.etherscan}`
+        );
+        const blockData = await blockResponse.json();
+        
+        if (blockData.result) {
+          const currentTime = Math.floor(Date.now() / 1000);
+          const blockTime = parseInt(blockData.result.timestamp, 16);
+          const timeDiff = currentTime - blockTime;
+          
+          setNetworkStats(prev => ({
+            blockNumber,
+            blockTime: timeDiff,
+            congestion: gasPrice > 50 ? 'high' : gasPrice > 25 ? 'medium' : 'low',
+            mevActivity: Math.random() * 30 + 10 // This would need specialized MEV data source
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch network stats:', error);
+    }
+  }, [gasPrice]);
+
+  // Fetch real prices from CoinGecko
+  const fetchCoinGeckoPrices = useCallback(async (tokens: string[]) => {
+    try {
+      const tokenIds = tokens.map(token => {
+        const idMap: Record<string, string> = {
+          'ETH': 'ethereum',
+          'USDC': 'usd-coin',
+          'USDT': 'tether',
+          'DAI': 'dai',
+          'WBTC': 'wrapped-bitcoin',
+          'LINK': 'chainlink'
+        };
+        return idMap[token];
+      }).filter(Boolean);
+
+      const response = await fetch(
+        `${API_ENDPOINTS.coingecko}/simple/price?ids=${tokenIds.join(',')}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true`,
+        {
+          headers: API_KEYS.coingecko ? { 'x-cg-demo-api-key': API_KEYS.coingecko } : {}
+        }
+      );
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('CoinGecko price fetch failed:', error);
+      throw error;
+    }
+  }, []);
+
+  // Fetch real DEX prices from DexScreener
+  const fetchDexScreenerPrices = useCallback(async (tokens: string[]) => {
+    try {
+      const promises = tokens.map(async (token) => {
+        const tokenAddress = TOKEN_ADDRESSES[token as keyof typeof TOKEN_ADDRESSES];
+        if (!tokenAddress) return null;
+
+        const response = await fetch(
+          `${API_ENDPOINTS.dexScreener}/tokens/${tokenAddress}`
+        );
+        const data = await response.json();
         
         return {
-          symbol: token,
-          address: getTokenAddress(token),
-          price: basePrice,
-          change24h: (Math.random() - 0.5) * 10, // -5% to +5%
-          volume24h: Math.random() * 10000000 + 1000000,
-          exchanges: {
-            'Uniswap V2': basePrice * (1 + (Math.random() - 0.5) * variance),
-            'Uniswap V3': basePrice * (1 + (Math.random() - 0.5) * variance),
-            'SushiSwap': basePrice * (1 + (Math.random() - 0.5) * variance),
-            '1inch': basePrice * (1 + (Math.random() - 0.5) * variance)
-          }
+          token,
+          pairs: data.pairs || []
         };
       });
 
-      const tokenPrices = await Promise.all(pricePromises);
-      const priceMap = tokenPrices.reduce((acc, price) => {
-        acc[price.symbol] = price;
-        return acc;
-      }, {} as Record<string, TokenPrice>);
+      const results = await Promise.all(promises);
+      return results.filter(Boolean);
+    } catch (error) {
+      console.error('DexScreener price fetch failed:', error);
+      throw error;
+    }
+  }, []);
+
+  // Fetch real prices from 1inch
+  const fetch1inchPrices = useCallback(async (tokens: string[]) => {
+    try {
+      const promises = tokens.map(async (token) => {
+        const tokenAddress = TOKEN_ADDRESSES[token as keyof typeof TOKEN_ADDRESSES];
+        if (!tokenAddress || token === 'ETH') return null;
+
+        const response = await fetch(
+          `${API_ENDPOINTS.oneInch}/quote?fromTokenAddress=${TOKEN_ADDRESSES.ETH}&toTokenAddress=${tokenAddress}&amount=1000000000000000000`,
+          {
+            headers: API_KEYS.oneInch ? { 'Authorization': `Bearer ${API_KEYS.oneInch}` } : {}
+          }
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          return {
+            token,
+            price: parseFloat(data.toTokenAmount) / 1e18,
+            exchange: '1inch'
+          };
+        }
+        return null;
+      });
+
+      const results = await Promise.all(promises);
+      return results.filter(Boolean);
+    } catch (error) {
+      console.error('1inch price fetch failed:', error);
+      return [];
+    }
+  }, []);
+
+  // Fetch Uniswap prices via The Graph
+  const fetchUniswapPrices = useCallback(async (tokens: string[]) => {
+    try {
+      const query = `
+        query GetTokenPrices($tokens: [String!]!) {
+          tokens(where: { id_in: $tokens }) {
+            id
+            symbol
+            derivedETH
+            totalValueLockedUSD
+          }
+        }
+      `;
+
+      const tokenAddresses = tokens.map(token => 
+        TOKEN_ADDRESSES[token as keyof typeof TOKEN_ADDRESSES]?.toLowerCase()
+      ).filter(Boolean);
+
+      const response = await fetch(API_ENDPOINTS.uniswap, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query,
+          variables: { tokens: tokenAddresses }
+        })
+      });
+
+      const data = await response.json();
+      return data.data?.tokens || [];
+    } catch (error) {
+      console.error('Uniswap price fetch failed:', error);
+      return [];
+    }
+  }, []);
+
+  // Combine all price sources
+  const fetchLivePrices = useCallback(async (tokens: string[]) => {
+    try {
+      setError(null);
+      
+      // Fetch from multiple sources in parallel
+      const [coinGeckoData, dexScreenerData, oneInchData, uniswapData] = await Promise.allSettled([
+        fetchCoinGeckoPrices(tokens),
+        fetchDexScreenerPrices(tokens),
+        fetch1inchPrices(tokens),
+        fetchUniswapPrices(tokens)
+      ]);
+
+      const priceMap: Record<string, TokenPrice> = {};
+
+      // Process CoinGecko data (base prices)
+      if (coinGeckoData.status === 'fulfilled') {
+        const cgData = coinGeckoData.value;
+        tokens.forEach(token => {
+          const tokenIdMap: Record<string, string> = {
+            'ETH': 'ethereum',
+            'USDC': 'usd-coin',
+            'USDT': 'tether',
+            'DAI': 'dai',
+            'WBTC': 'wrapped-bitcoin',
+            'LINK': 'chainlink'
+          };
+          
+          const tokenId = tokenIdMap[token];
+          const tokenData = cgData[tokenId];
+          
+          if (tokenData) {
+            priceMap[token] = {
+              symbol: token,
+              address: TOKEN_ADDRESSES[token as keyof typeof TOKEN_ADDRESSES] || '',
+              price: tokenData.usd,
+              change24h: tokenData.usd_24h_change || 0,
+              volume24h: tokenData.usd_24h_vol || 0,
+              exchanges: {}
+            };
+          }
+        });
+      }
+
+      // Process DexScreener data (DEX prices)
+      if (dexScreenerData.status === 'fulfilled') {
+        dexScreenerData.value.forEach((tokenData: any) => {
+          if (tokenData && priceMap[tokenData.token]) {
+            tokenData.pairs.forEach((pair: any) => {
+              if (pair.dexId && pair.priceUsd) {
+                const exchangeName = pair.dexId === 'uniswap' ? 'Uniswap V2' : 
+                                   pair.dexId === 'uniswapv3' ? 'Uniswap V3' :
+                                   pair.dexId === 'sushiswap' ? 'SushiSwap' : pair.dexId;
+                
+                priceMap[tokenData.token].exchanges[exchangeName] = parseFloat(pair.priceUsd);
+              }
+            });
+          }
+        });
+      }
+
+      // Process 1inch data
+      if (oneInchData.status === 'fulfilled') {
+        oneInchData.value.forEach((tokenData: any) => {
+          if (tokenData && priceMap[tokenData.token]) {
+            priceMap[tokenData.token].exchanges['1inch'] = tokenData.price;
+          }
+        });
+      }
+
+      // Process Uniswap data
+      if (uniswapData.status === 'fulfilled') {
+        // ETH price needed for conversion
+        const ethPrice = priceMap['ETH']?.price || 3000;
+        
+        uniswapData.value.forEach((tokenData: any) => {
+          const symbol = Object.keys(TOKEN_ADDRESSES).find(
+            key => TOKEN_ADDRESSES[key as keyof typeof TOKEN_ADDRESSES].toLowerCase() === tokenData.id
+          );
+          
+          if (symbol && priceMap[symbol]) {
+            const usdPrice = parseFloat(tokenData.derivedETH) * ethPrice;
+            priceMap[symbol].exchanges['Uniswap V3'] = usdPrice;
+          }
+        });
+      }
 
       setPrices(priceMap);
       return priceMap;
     } catch (error) {
       console.error('Failed to fetch live prices:', error);
-      setError('Failed to fetch price data');
+      setError('Failed to fetch real-time price data');
       throw error;
     }
-  }, []);
+  }, [fetchCoinGeckoPrices, fetchDexScreenerPrices, fetch1inchPrices, fetchUniswapPrices]);
 
-  // Detect arbitrage opportunities
+  // Detect real arbitrage opportunities
   const detectArbitrageOpportunities = useCallback((priceData: Record<string, TokenPrice>) => {
     const opportunities: ArbitrageOpportunity[] = [];
-    const tokens = Object.keys(priceData);
     
-    // Check all token pairs
-    for (let i = 0; i < tokens.length; i++) {
-      for (let j = i + 1; j < tokens.length; j++) {
-        const tokenA = tokens[i];
-        const tokenB = tokens[j];
-        const priceA = priceData[tokenA];
-        const priceB = priceData[tokenB];
-        
-        if (!priceA || !priceB) continue;
-        
-        // Check each exchange combination
-        const exchanges = Object.keys(priceA.exchanges);
-        
-        for (let x = 0; x < exchanges.length; x++) {
-          for (let y = x + 1; y < exchanges.length; y++) {
-            const exchangeA = exchanges[x];
-            const exchangeB = exchanges[y];
+    Object.entries(priceData).forEach(([token, tokenPrice]) => {
+      const exchanges = Object.entries(tokenPrice.exchanges);
+      
+      // Compare prices across exchanges for the same token
+      for (let i = 0; i < exchanges.length; i++) {
+        for (let j = i + 1; j < exchanges.length; j++) {
+          const [exchangeA, priceA] = exchanges[i];
+          const [exchangeB, priceB] = exchanges[j];
+          
+          if (!priceA || !priceB || priceA <= 0 || priceB <= 0) continue;
+          
+          const priceDifference = Math.abs(priceA - priceB);
+          const priceDifferencePercent = (priceDifference / Math.min(priceA, priceB)) * 100;
+          
+          // Only consider opportunities with significant price difference
+          if (priceDifferencePercent > 0.1) {
+            const tradeAmount = 10; // 10 ETH base trade size
+            const potentialProfit = (priceDifference / Math.min(priceA, priceB)) * tradeAmount * Math.min(priceA, priceB);
             
-            const priceOnA = priceA.exchanges[exchangeA];
-            const priceOnB = priceA.exchanges[exchangeB];
+            // Calculate real gas cost based on current gas price
+            const gasUnits = 350000; // Estimated gas for flash loan arbitrage
+            const gasEstimate = (gasPrice * gasUnits * tokenPrice.price) / 1e9; // Convert gwei to USD
             
-            if (!priceOnA || !priceOnB) continue;
+            const netProfit = potentialProfit - gasEstimate;
             
-            const priceDifference = Math.abs(priceOnA - priceOnB);
-            const priceDifferencePercent = (priceDifference / Math.min(priceOnA, priceOnB)) * 100;
-            
-            // Only consider opportunities with > 0.1% price difference
-            if (priceDifferencePercent > 0.1) {
-              const tradeAmount = 5 + Math.random() * 10; // 5-15 ETH
-              const potentialProfit = (priceDifference / Math.min(priceOnA, priceOnB)) * tradeAmount * Math.min(priceOnA, priceOnB);
-              const gasEstimate = 15 + Math.random() * 25; // $15-40 gas cost
-              const netProfit = potentialProfit - gasEstimate;
-              
-              if (netProfit > 0) {
-                opportunities.push({
-                  id: `${tokenA}-${tokenB}-${exchangeA}-${exchangeB}-${Date.now()}`,
-                  tokenPair: `${tokenA}/${tokenB}`,
-                  tokenA: priceA.address,
-                  tokenB: priceB.address,
-                  exchangeA,
-                  exchangeB,
-                  priceA: priceOnA,
-                  priceB: priceOnB,
-                  priceDifference: priceDifferencePercent,
-                  potentialProfit,
-                  gasEstimate,
-                  netProfit,
-                  amount: tradeAmount,
-                  timestamp: Date.now(),
-                  status: 'active',
-                  exchanges: [exchangeA, exchangeB],
-                  slippage: 300 // 3% default slippage
-                });
-              }
+            if (netProfit > 5) { // Minimum $5 profit threshold
+              opportunities.push({
+                id: `${token}-${exchangeA}-${exchangeB}-${Date.now()}`,
+                tokenPair: `${token}/USD`,
+                tokenA: tokenPrice.address,
+                tokenB: TOKEN_ADDRESSES.USDC, // Use USDC as base
+                exchangeA,
+                exchangeB,
+                priceA,
+                priceB,
+                priceDifference: priceDifferencePercent,
+                potentialProfit,
+                gasEstimate,
+                netProfit,
+                amount: tradeAmount,
+                timestamp: Date.now(),
+                status: 'active',
+                exchanges: [exchangeA, exchangeB],
+                slippage: 300 // 3% default slippage
+              });
             }
           }
         }
       }
-    }
+    });
     
     // Sort by net profit descending
     opportunities.sort((a, b) => b.netProfit - a.netProfit);
     
-    // Take top 10 opportunities
-    return opportunities.slice(0, 10);
-  }, []);
-
-  // Fetch current gas prices
-  const fetchGasPrice = useCallback(async () => {
-    try {
-      // Simulate fetching from gas tracker APIs
-      const baseGas = 20;
-      const variance = 15;
-      const currentGas = baseGas + Math.random() * variance;
-      
-      setGasPrice(currentGas);
-      return currentGas;
-    } catch (error) {
-      console.error('Failed to fetch gas price:', error);
-      return gasPrice;
-    }
+    return opportunities.slice(0, 20); // Top 20 opportunities
   }, [gasPrice]);
 
-  // Fetch network statistics
-  const fetchNetworkStats = useCallback(async () => {
-    try {
-      // Simulate fetching network data
-      setNetworkStats(prev => ({
-        blockNumber: prev.blockNumber + Math.floor(Math.random() * 3),
-        blockTime: 11 + Math.random() * 3,
-        congestion: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as any,
-        mevActivity: 15 + Math.random() * 20
-      }));
-    } catch (error) {
-      console.error('Failed to fetch network stats:', error);
-    }
-  }, []);
-
   // WebSocket connection for real-time updates
-  const setupWebSocket = useCallback(() => {
-    // In production, this would connect to real WebSocket feeds
-    // For demo, we'll use intervals to simulate real-time updates
-    
+  const setupRealTimeUpdates = useCallback(() => {
+    // Update prices every 5 seconds
     const priceInterval = setInterval(async () => {
       try {
         const tokens = ['ETH', 'USDC', 'USDT', 'DAI', 'WBTC', 'LINK'];
@@ -185,21 +408,24 @@ export const useRealTimeData = () => {
       } catch (error) {
         console.error('Price update failed:', error);
       }
-    }, 3000); // Update every 3 seconds
+    }, 5000);
 
-    const gasInterval = setInterval(fetchGasPrice, 5000); // Update every 5 seconds
-    const networkInterval = setInterval(fetchNetworkStats, 10000); // Update every 10 seconds
+    // Update gas prices every 10 seconds
+    const gasInterval = setInterval(fetchRealGasPrice, 10000);
+    
+    // Update network stats every 15 seconds
+    const networkInterval = setInterval(fetchRealNetworkStats, 15000);
 
     return () => {
       clearInterval(priceInterval);
       clearInterval(gasInterval);
       clearInterval(networkInterval);
     };
-  }, [fetchLivePrices, detectArbitrageOpportunities, fetchGasPrice, fetchNetworkStats]);
+  }, [fetchLivePrices, detectArbitrageOpportunities, fetchRealGasPrice, fetchRealNetworkStats]);
 
-  // Initialize data fetching
+  // Initialize real data fetching
   useEffect(() => {
-    const initializeData = async () => {
+    const initializeRealData = async () => {
       setIsLoading(true);
       setError(null);
       
@@ -209,31 +435,31 @@ export const useRealTimeData = () => {
         // Initial data fetch
         await Promise.all([
           fetchLivePrices(tokens),
-          fetchGasPrice(),
-          fetchNetworkStats()
+          fetchRealGasPrice(),
+          fetchRealNetworkStats()
         ]);
         
         // Setup real-time updates
-        const cleanup = setupWebSocket();
+        const cleanup = setupRealTimeUpdates();
         
         setIsLoading(false);
         
         return cleanup;
       } catch (error) {
-        console.error('Failed to initialize data:', error);
-        setError('Failed to initialize real-time data');
+        console.error('Failed to initialize real data:', error);
+        setError('Failed to connect to real-time data sources. Please check your API keys.');
         setIsLoading(false);
       }
     };
 
-    const cleanup = initializeData();
+    const cleanup = initializeRealData();
     
     return () => {
       if (cleanup instanceof Promise) {
         cleanup.then(fn => fn && fn());
       }
     };
-  }, [fetchLivePrices, fetchGasPrice, fetchNetworkStats, setupWebSocket]);
+  }, [fetchLivePrices, fetchRealGasPrice, fetchRealNetworkStats, setupRealTimeUpdates]);
 
   // Manual refresh function
   const refreshData = useCallback(async () => {
@@ -243,14 +469,14 @@ export const useRealTimeData = () => {
       const newPrices = await fetchLivePrices(tokens);
       const newOpportunities = detectArbitrageOpportunities(newPrices);
       setOpportunities(newOpportunities);
-      await fetchGasPrice();
-      await fetchNetworkStats();
+      await fetchRealGasPrice();
+      await fetchRealNetworkStats();
     } catch (error) {
-      setError('Failed to refresh data');
+      setError('Failed to refresh real-time data');
     } finally {
       setIsLoading(false);
     }
-  }, [fetchLivePrices, detectArbitrageOpportunities, fetchGasPrice, fetchNetworkStats]);
+  }, [fetchLivePrices, detectArbitrageOpportunities, fetchRealGasPrice, fetchRealNetworkStats]);
 
   return {
     prices,
@@ -261,31 +487,4 @@ export const useRealTimeData = () => {
     error,
     refreshData
   };
-};
-
-// Helper functions
-const getBasePrice = (token: string): number => {
-  const basePrices: Record<string, number> = {
-    'ETH': 2450 + Math.random() * 100,
-    'USDC': 1.0001 + Math.random() * 0.0002,
-    'USDT': 0.9998 + Math.random() * 0.0004,
-    'DAI': 1.0003 + Math.random() * 0.0006,
-    'WBTC': 43250 + Math.random() * 1000,
-    'LINK': 14.75 + Math.random() * 2
-  };
-  
-  return basePrices[token] || 1;
-};
-
-const getTokenAddress = (token: string): string => {
-  const addresses: Record<string, string> = {
-    'ETH': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-    'USDC': '0xA0b86a33E6417c4c6b8c4c6b8c4c6b8c4c6b8c4c',
-    'USDT': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    'DAI': '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-    'WBTC': '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-    'LINK': '0x514910771AF9Ca656af840dff83E8264EcF986CA'
-  };
-  
-  return addresses[token] || addresses['ETH'];
 };

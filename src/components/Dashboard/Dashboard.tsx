@@ -12,27 +12,13 @@ import { ArbitrageOpportunity } from '../../types';
 
 const Dashboard: React.FC = () => {
   const { 
-    portfolio, 
-    setPortfolio,
+    portfolio,
     addTransaction 
   } = useStore();
   
   const { opportunities, prices, gasPrice, networkStats, isLoading, error } = useRealTimeData();
   const { executeArbitrage, isExecuting } = useArbitrageContract();
 
-  // Mock data generation
-  useEffect(() => {
-    // Set mock portfolio data
-    setPortfolio({
-      totalBalance: 12.45,
-      totalProfit: 445.67,
-      totalTrades: 23,
-      successRate: 87.5,
-      dailyPnL: 67.23,
-      weeklyPnL: 234.56,
-      monthlyPnL: 445.67,
-    });
-  }, [setPortfolio]);
 
   const handleExecuteTrade = async (opportunityId: string) => {
     const opportunity = opportunities.find(opp => opp.id === opportunityId);
@@ -79,7 +65,20 @@ const Dashboard: React.FC = () => {
     return (
       <div className="p-6">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p className="text-red-700 dark:text-red-300">Error loading data: {error}</p>
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+            Real-Time Data Connection Error
+          </h3>
+          <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
+          <div className="text-sm text-red-600 dark:text-red-400">
+            <p className="mb-2">To connect to real-time data, please ensure you have:</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Valid API keys configured in your environment variables</li>
+              <li>VITE_ETHERSCAN_API_KEY for gas prices and network data</li>
+              <li>VITE_COINGECKO_API_KEY for token prices</li>
+              <li>VITE_MORALIS_API_KEY for blockchain data</li>
+              <li>VITE_1INCH_API_KEY for DEX aggregation</li>
+            </ul>
+          </div>
         </div>
       </div>
     );
@@ -94,7 +93,7 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
           <span className="text-sm text-gray-600 dark:text-gray-400">
-            Live Market Data {isLoading && '(Loading...)'}
+            {isLoading ? 'Connecting to Real-Time Data...' : 'Live Market Data Connected'}
           </span>
         </div>
       </div>
@@ -123,10 +122,10 @@ const Dashboard: React.FC = () => {
         />
         <StatsCard
           title="24h P&L"
-          value={`$${portfolio.dailyPnL.toFixed(2)}`}
-          change={portfolio.dailyPnL > 0 ? 8.7 : -3.2}
+          value={`${gasPrice.toFixed(1)} gwei`}
+          change={gasPrice > 30 ? -5.2 : 3.1}
           icon={TrendingUp}
-          color={portfolio.dailyPnL > 0 ? 'green' : 'red'}
+          color={gasPrice > 30 ? 'red' : 'green'}
         />
       </div>
 
@@ -138,13 +137,18 @@ const Dashboard: React.FC = () => {
 
         {/* Network Status */}
         <div>
-          <NetworkStatus />
+          <NetworkStatus 
+            gasPrice={gasPrice}
+            blockNumber={networkStats.blockNumber}
+            blockTime={networkStats.blockTime}
+            congestion={networkStats.congestion}
+          />
         </div>
       </div>
 
       {/* Price Comparison Table */}
       <div>
-        <PriceComparisonTable />
+        <PriceComparisonTable prices={prices} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
@@ -152,13 +156,28 @@ const Dashboard: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Live Opportunities
+              Real-Time Arbitrage Opportunities
             </h2>
             <span className="text-sm text-gray-500 dark:text-gray-400">
               {opportunities.filter(opp => opp.netProfit > 0).length} profitable
             </span>
           </div>
           
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
+              <p className="text-gray-500 dark:text-gray-400">Loading real-time opportunities...</p>
+            </div>
+          ) : opportunities.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400">
+                No profitable arbitrage opportunities found at current gas prices.
+              </p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                Current gas price: {gasPrice.toFixed(1)} gwei
+              </p>
+            </div>
+          ) : (
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {opportunities
               .sort((a, b) => b.netProfit - a.netProfit)
@@ -171,6 +190,7 @@ const Dashboard: React.FC = () => {
                 />
               ))}
           </div>
+          )}
         </div>
       </div>
     </div>
