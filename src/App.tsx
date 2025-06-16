@@ -9,7 +9,7 @@ import TransactionHistory from './components/History/TransactionHistory';
 import Settings from './components/Settings/Settings';
 
 function App() {
-  const { isDarkMode, currentView, wallet, isNetworkSwitching } = useStore();
+  const { isDarkMode, currentView, wallet, isNetworkSwitching, hasEverConnected } = useStore();
 
   useEffect(() => {
     if (isDarkMode) {
@@ -18,11 +18,6 @@ function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
-
-  // Show landing page if wallet is not connected and not in the middle of network switching
-  if (!wallet.connected && !isNetworkSwitching) {
-    return <LandingPage />;
-  }
 
   // Show loading state during network switching
   if (isNetworkSwitching) {
@@ -39,6 +34,11 @@ function App() {
         </div>
       </div>
     );
+  }
+
+  // Only show landing page if wallet has never been connected AND is not currently connected
+  if (!wallet.connected && !hasEverConnected) {
+    return <LandingPage />;
   }
 
   const renderCurrentView = () => {

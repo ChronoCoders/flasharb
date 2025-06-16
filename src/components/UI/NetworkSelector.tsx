@@ -64,7 +64,6 @@ const networks = [
 const NetworkSelector: React.FC = () => {
   const { wallet, setWallet, setIsNetworkSwitching } = useStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [isSwitching, setIsSwitching] = useState(false);
   
   const currentNetwork = networks.find(n => n.id === wallet.network?.chainId) || networks[0];
 
@@ -79,7 +78,6 @@ const NetworkSelector: React.FC = () => {
       return;
     }
 
-    setIsSwitching(true);
     setIsNetworkSwitching(true);
     setIsOpen(false);
 
@@ -90,7 +88,7 @@ const NetworkSelector: React.FC = () => {
         params: [{ chainId: network.chainId }],
       });
 
-      // Get updated balance after network switch
+      // Get updated account info after network switch
       const accounts = await window.ethereum.request({
         method: 'eth_accounts',
       });
@@ -106,6 +104,7 @@ const NetworkSelector: React.FC = () => {
         // Update wallet state with new network and balance
         setWallet(prev => ({
           ...prev,
+          address: accounts[0],
           connected: true, // Ensure connected state is maintained
           balance: balanceInEth,
           network: {
@@ -139,7 +138,7 @@ const NetworkSelector: React.FC = () => {
             ],
           });
 
-          // After adding, try to get balance
+          // After adding, get account info
           const accounts = await window.ethereum.request({
             method: 'eth_accounts',
           });
@@ -155,6 +154,7 @@ const NetworkSelector: React.FC = () => {
             // Update wallet state after adding network
             setWallet(prev => ({
               ...prev,
+              address: accounts[0],
               connected: true, // Ensure connected state is maintained
               balance: balanceInEth,
               network: {
@@ -181,7 +181,6 @@ const NetworkSelector: React.FC = () => {
         alert(`Failed to switch to ${network.name}. Please try again or switch manually in MetaMask.`);
       }
     } finally {
-      setIsSwitching(false);
       setIsNetworkSwitching(false);
     }
   };
@@ -194,12 +193,11 @@ const NetworkSelector: React.FC = () => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        disabled={isSwitching}
-        className="flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
       >
         <div className={`w-3 h-3 rounded-full ${currentNetwork.color}`} />
         <span className="text-sm font-medium text-gray-900 dark:text-white">
-          {isSwitching ? 'Switching...' : currentNetwork.name}
+          {currentNetwork.name}
         </span>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -222,8 +220,7 @@ const NetworkSelector: React.FC = () => {
                 <button
                   key={network.id}
                   onClick={() => switchNetwork(network)}
-                  disabled={isSwitching}
-                  className={`w-full flex items-center space-x-3 px-3 py-3 rounded-md transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`w-full flex items-center space-x-3 px-3 py-3 rounded-md transition-colors text-left ${
                     currentNetwork.id === network.id
                       ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white'

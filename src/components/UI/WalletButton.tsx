@@ -11,7 +11,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
   variant = 'default',
   size = 'default'
 }) => {
-  const { wallet, setWallet } = useStore();
+  const { wallet, setWallet, setHasEverConnected } = useStore();
   const [isConnecting, setIsConnecting] = useState(false);
 
   // Listen for account changes
@@ -19,7 +19,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
     if (typeof window !== 'undefined' && window.ethereum) {
       const handleAccountsChanged = async (accounts: string[]) => {
         if (accounts.length === 0) {
-          // User disconnected
+          // User disconnected - only reset if they actually disconnected
           setWallet({
             address: null,
             balance: 0,
@@ -27,7 +27,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             connected: false,
           });
         } else if (accounts[0] !== wallet.address) {
-          // Account changed, update balance
+          // Account changed, update balance but maintain connection
           try {
             const balance = await window.ethereum.request({
               method: 'eth_getBalance',
@@ -71,6 +71,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             
             setWallet(prev => ({
               ...prev,
+              address: accounts[0],
               connected: true, // Ensure connected state is maintained
               balance: balanceInEth,
               network: {
@@ -100,6 +101,57 @@ const WalletButton: React.FC<WalletButtonProps> = ({
       };
     }
   }, [wallet.address, setWallet]);
+
+  // Check for existing connection on mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            // Wallet is already connected
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            const balance = await window.ethereum.request({
+              method: 'eth_getBalance',
+              params: [accounts[0], 'latest'],
+            });
+
+            const balanceInEth = parseInt(balance, 16) / Math.pow(10, 18);
+            const networkId = parseInt(chainId, 16);
+
+            const networkMap: Record<number, any> = {
+              1: { name: 'Ethereum', symbol: 'ETH' },
+              56: { name: 'BSC', symbol: 'BNB' },
+              137: { name: 'Polygon', symbol: 'MATIC' },
+              42161: { name: 'Arbitrum', symbol: 'ETH' }
+            };
+
+            const network = networkMap[networkId] || { name: 'Unknown', symbol: 'ETH' };
+
+            setWallet({
+              address: accounts[0],
+              balance: balanceInEth,
+              network: {
+                chainId: networkId,
+                name: network.name,
+                symbol: network.symbol,
+                rpcUrl: '',
+                blockExplorer: '',
+                gasPrice: 0,
+                blockNumber: 0,
+              },
+              connected: true,
+            });
+            setHasEverConnected(true);
+          }
+        } catch (error) {
+          console.error('Failed to check existing connection:', error);
+        }
+      }
+    };
+
+    checkConnection();
+  }, [setWallet, setHasEverConnected]);
 
   const connectWallet = async () => {
     if (typeof window === 'undefined' || !window.ethereum) {
@@ -157,6 +209,8 @@ const WalletButton: React.FC<WalletButtonProps> = ({
         },
         connected: true,
       });
+
+      setHasEverConnected(true);
 
     } catch (error: any) {
       console.error('Failed to connect wallet:', error);
