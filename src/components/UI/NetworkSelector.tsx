@@ -62,7 +62,7 @@ const networks = [
 ];
 
 const NetworkSelector: React.FC = () => {
-  const { wallet, setWallet } = useStore();
+  const { wallet, setWallet, setIsNetworkSwitching } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
   
@@ -80,6 +80,7 @@ const NetworkSelector: React.FC = () => {
     }
 
     setIsSwitching(true);
+    setIsNetworkSwitching(true);
     setIsOpen(false);
 
     try {
@@ -105,6 +106,7 @@ const NetworkSelector: React.FC = () => {
         // Update wallet state with new network and balance
         setWallet(prev => ({
           ...prev,
+          connected: true, // Ensure connected state is maintained
           balance: balanceInEth,
           network: {
             chainId: network.id,
@@ -153,6 +155,7 @@ const NetworkSelector: React.FC = () => {
             // Update wallet state after adding network
             setWallet(prev => ({
               ...prev,
+              connected: true, // Ensure connected state is maintained
               balance: balanceInEth,
               network: {
                 chainId: network.id,
@@ -179,6 +182,7 @@ const NetworkSelector: React.FC = () => {
       }
     } finally {
       setIsSwitching(false);
+      setIsNetworkSwitching(false);
     }
   };
 

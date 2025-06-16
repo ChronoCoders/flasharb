@@ -9,6 +9,8 @@ interface AppState {
   // Wallet
   wallet: WalletState;
   setWallet: (wallet: WalletState) => void;
+  isNetworkSwitching: boolean;
+  setIsNetworkSwitching: (switching: boolean) => void;
 
   // Trading
   tradingConfig: TradingConfig;
@@ -48,6 +50,8 @@ export const useStore = create<AppState>((set) => ({
     connected: false,
   },
   setWallet: (wallet) => set({ wallet }),
+  isNetworkSwitching: false,
+  setIsNetworkSwitching: (switching) => set({ isNetworkSwitching: switching }),
 
   // Trading
   tradingConfig: {

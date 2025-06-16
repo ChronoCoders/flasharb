@@ -39,6 +39,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
               ...prev,
               address: accounts[0],
               balance: balanceInEth,
+              connected: true, // Ensure connected state is maintained
             }));
           } catch (error) {
             console.error('Failed to get balance:', error);
@@ -70,6 +71,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             
             setWallet(prev => ({
               ...prev,
+              connected: true, // Ensure connected state is maintained
               balance: balanceInEth,
               network: {
                 chainId: networkId,
