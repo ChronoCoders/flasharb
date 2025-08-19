@@ -395,7 +395,7 @@ export const useRealTimeData = () => {
     
     return () => {
       if (cleanup instanceof Promise) {
-        cleanup.then(fn => fn && fn());
+        cleanup.then(fn => fn?.());
       }
     };
   }, [fetchLivePrices, fetchRealGasPrice, fetchRealNetworkStats, setupRealTimeUpdates, detectArbitrageOpportunities]);
