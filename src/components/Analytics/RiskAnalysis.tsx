@@ -184,7 +184,7 @@ const RiskAnalysis: React.FC = () => {
                   <span className="font-medium text-gray-900 dark:text-white">
                     {metric.name}
                   </span>
-                  <span className={`text-sm font-semibold`} style={{ color: getRiskColor(metric.status) }}>
+                  <span className={"text-sm font-semibold"} style={{ color: getRiskColor(metric.status) }}>
                     {metric.value}%
                   </span>
                 </div>
