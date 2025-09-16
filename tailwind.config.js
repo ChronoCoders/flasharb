@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}'
   ],
   darkMode: 'class',
   theme: {
@@ -18,7 +18,7 @@ export default {
           600: '#2563eb',
           700: '#1d4ed8',
           800: '#1e40af',
-          900: '#1e3a8a',
+          900: '#1e3a8a'
         },
         success: {
           50: '#f0fdf4',
@@ -30,7 +30,7 @@ export default {
           600: '#16a34a',
           700: '#15803d',
           800: '#166534',
-          900: '#14532d',
+          900: '#14532d'
         },
         danger: {
           50: '#fef2f2',
@@ -42,14 +42,14 @@ export default {
           600: '#dc2626',
           700: '#b91c1c',
           800: '#991b1b',
-          900: '#7f1d1d',
+          900: '#7f1d1d'
         }
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'bounce-slow': 'bounce 2s infinite',
+        'bounce-slow': 'bounce 2s infinite'
       }
-    },
+    }
   },
-  plugins: [],
+  plugins: []
 }
