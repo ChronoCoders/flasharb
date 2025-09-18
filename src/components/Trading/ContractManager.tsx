@@ -1,46 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Settings, 
-  Shield, 
-  DollarSign, 
-  AlertTriangle, 
-  Play, 
+import React, { useState, useEffect } from "react";
+import {
+  Settings,
+  Shield,
+  DollarSign,
+  AlertTriangle,
+  Play,
   Pause,
   Download,
   Upload,
-  RefreshCw
-} from 'lucide-react';
-import { useArbitrageContract } from '../../hooks/useArbitrageContract';
-import { useStore } from '../../store/useStore';
+  RefreshCw,
+} from "lucide-react";
+import { useArbitrageContract } from "../../hooks/useArbitrageContract";
+import { useStore } from "../../store/useStore";
 
 const ContractManager: React.FC = () => {
   const { wallet } = useStore();
-  const { 
-    getContractBalance, 
-    withdrawProfits, 
-    getRiskStatus, 
+  const {
+    getContractBalance,
+    withdrawProfits,
+    getRiskStatus,
     pauseContract,
-    isExecuting 
+    isExecuting,
   } = useArbitrageContract();
-  
-  const [contractBalances, setContractBalances] = useState<Record<string, string>>({});
+
+  const [contractBalances, setContractBalances] = useState<
+    Record<string, string>
+  >({});
   const [riskStatus, setRiskStatus] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [selectedToken, setSelectedToken] = useState('ETH');
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [selectedToken, setSelectedToken] = useState("ETH");
 
   const tokens = [
-    { symbol: 'ETH', address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2' },
-    { symbol: 'USDC', address: '0xA0b86a33E6417c4c6b8c4c6b8c4c6b8c4c6b8c4c' },
-    { symbol: 'USDT', address: '0xdAC17F958D2ee523a2206206994597C13D831ec7' },
-    { symbol: 'DAI', address: '0x6B175474E89094C44Da98b954EedeAC495271d0F' }
+    { symbol: "ETH", address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" },
+    { symbol: "USDC", address: "0xA0b86a33E6417c4c6b8c4c6b8c4c6b8c4c6b8c4c" },
+    { symbol: "USDT", address: "0xdAC17F958D2ee523a2206206994597C13D831ec7" },
+    { symbol: "DAI", address: "0x6B175474E89094C44Da98b954EedeAC495271d0F" },
   ];
 
   // Fetch contract data
   useEffect(() => {
     const fetchContractData = async () => {
       if (!wallet.connected) return;
-      
+
       setIsLoading(true);
       try {
         // Fetch balances for all tokens
@@ -48,28 +50,30 @@ const ContractManager: React.FC = () => {
           const balance = await getContractBalance(token.address);
           return { symbol: token.symbol, balance };
         });
-        
+
         const balances = await Promise.all(balancePromises);
-        const balanceMap = balances.reduce((acc, { symbol, balance }) => {
-          acc[symbol] = balance;
-          return acc;
-        }, {} as Record<string, string>);
-        
+        const balanceMap = balances.reduce(
+          (acc, { symbol, balance }) => {
+            acc[symbol] = balance;
+            return acc;
+          },
+          {} as Record<string, string>,
+        );
+
         setContractBalances(balanceMap);
-        
+
         // Fetch risk status
         const risk = await getRiskStatus();
         setRiskStatus(risk);
-        
       } catch (error) {
-        console.error('Failed to fetch contract data:', error);
+        console.error("Failed to fetch contract data:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchContractData();
-    
+
     // Refresh every 30 seconds
     const interval = setInterval(fetchContractData, 30000);
     return () => clearInterval(interval);
@@ -77,33 +81,35 @@ const ContractManager: React.FC = () => {
 
   const handleWithdrawProfits = async () => {
     if (!withdrawAmount || !selectedToken) return;
-    
+
     try {
-      const tokenAddress = tokens.find(t => t.symbol === selectedToken)?.address;
+      const tokenAddress = tokens.find(
+        (t) => t.symbol === selectedToken,
+      )?.address;
       if (!tokenAddress) return;
-      
+
       const txHash = await withdrawProfits(tokenAddress, withdrawAmount);
-      console.log('Withdrawal successful:', txHash);
-      
+      console.log("Withdrawal successful:", txHash);
+
       // Refresh balances
       const balance = await getContractBalance(tokenAddress);
-      setContractBalances(prev => ({
+      setContractBalances((prev) => ({
         ...prev,
-        [selectedToken]: balance
+        [selectedToken]: balance,
       }));
-      
-      setWithdrawAmount('');
+
+      setWithdrawAmount("");
     } catch (error) {
-      console.error('Withdrawal failed:', error);
+      console.error("Withdrawal failed:", error);
     }
   };
 
   const handlePauseContract = async () => {
     try {
       const txHash = await pauseContract();
-      console.log('Contract paused:', txHash);
+      console.log("Contract paused:", txHash);
     } catch (error) {
-      console.error('Failed to pause contract:', error);
+      console.error("Failed to pause contract:", error);
     }
   };
 
@@ -169,21 +175,31 @@ const ContractManager: React.FC = () => {
           {riskStatus ? (
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Daily Loss</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Daily Loss
+                </span>
                 <span className="text-gray-900 dark:text-white">
                   ${parseFloat(riskStatus.currentDailyLoss).toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Remaining Limit</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Remaining Limit
+                </span>
                 <span className="text-green-500">
                   ${parseFloat(riskStatus.remainingDailyLimit).toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Can Trade</span>
-                <span className={riskStatus.canTrade ? 'text-green-500' : 'text-red-500'}>
-                  {riskStatus.canTrade ? 'Yes' : 'No'}
+                <span className="text-gray-600 dark:text-gray-400">
+                  Can Trade
+                </span>
+                <span
+                  className={
+                    riskStatus.canTrade ? "text-green-500" : "text-red-500"
+                  }
+                >
+                  {riskStatus.canTrade ? "Yes" : "No"}
                 </span>
               </div>
             </div>
@@ -221,11 +237,13 @@ const ContractManager: React.FC = () => {
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Contract Balances
         </h3>
-        
+
         {isLoading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">Loading balances...</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">
+              Loading balances...
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -241,7 +259,7 @@ const ContractManager: React.FC = () => {
                   <DollarSign className="w-4 h-4 text-green-500" />
                 </div>
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {contractBalances[token.symbol] || '0.00'}
+                  {contractBalances[token.symbol] || "0.00"}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   Available for withdrawal
@@ -257,7 +275,7 @@ const ContractManager: React.FC = () => {
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Withdraw Profits
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -275,7 +293,7 @@ const ContractManager: React.FC = () => {
               ))}
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Amount
@@ -289,7 +307,7 @@ const ContractManager: React.FC = () => {
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
-          
+
           <div className="flex items-end">
             <button
               onClick={handleWithdrawProfits}
@@ -301,13 +319,14 @@ const ContractManager: React.FC = () => {
             </button>
           </div>
         </div>
-        
+
         <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
           <div className="flex items-start space-x-2">
             <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5" />
             <div className="text-sm text-yellow-700 dark:text-yellow-300">
-              <strong>Note:</strong> Withdrawals will transfer tokens to your connected wallet address. 
-              Make sure you have enough ETH for gas fees.
+              <strong>Note:</strong> Withdrawals will transfer tokens to your
+              connected wallet address. Make sure you have enough ETH for gas
+              fees.
             </div>
           </div>
         </div>
@@ -318,48 +337,76 @@ const ContractManager: React.FC = () => {
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Contract Information
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="font-medium text-gray-900 dark:text-white mb-3">Deployed Contracts</h4>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+              Deployed Contracts
+            </h4>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Arbitrage Bot</span>
-                <span className="text-blue-500 font-mono text-sm">0x1234...7890</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Arbitrage Bot
+                </span>
+                <span className="text-blue-500 font-mono text-sm">
+                  0x1234...7890
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">DEX Aggregator</span>
-                <span className="text-blue-500 font-mono text-sm">0x2345...8901</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  DEX Aggregator
+                </span>
+                <span className="text-blue-500 font-mono text-sm">
+                  0x2345...8901
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Risk Manager</span>
-                <span className="text-blue-500 font-mono text-sm">0x3456...9012</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Risk Manager
+                </span>
+                <span className="text-blue-500 font-mono text-sm">
+                  0x3456...9012
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Price Oracle</span>
-                <span className="text-blue-500 font-mono text-sm">0x4567...0123</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Price Oracle
+                </span>
+                <span className="text-blue-500 font-mono text-sm">
+                  0x4567...0123
+                </span>
               </div>
             </div>
           </div>
-          
+
           <div>
-            <h4 className="font-medium text-gray-900 dark:text-white mb-3">Security Features</h4>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+              Security Features
+            </h4>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Shield className="w-4 h-4 text-green-500" />
-                <span className="text-gray-600 dark:text-gray-400">Multi-signature wallet</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Multi-signature wallet
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Shield className="w-4 h-4 text-green-500" />
-                <span className="text-gray-600 dark:text-gray-400">Emergency pause function</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Emergency pause function
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Shield className="w-4 h-4 text-green-500" />
-                <span className="text-gray-600 dark:text-gray-400">Slippage protection</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Slippage protection
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Shield className="w-4 h-4 text-green-500" />
-                <span className="text-gray-600 dark:text-gray-400">Daily loss limits</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Daily loss limits
+                </span>
               </div>
             </div>
           </div>

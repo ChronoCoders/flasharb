@@ -1,8 +1,8 @@
-import React from 'react';
-import { Moon, Sun, Activity, Zap } from 'lucide-react';
-import { useStore } from '../../store/useStore';
-import WalletButton from '../UI/WalletButton';
-import NetworkSelector from '../UI/NetworkSelector';
+import React from "react";
+import { Moon, Sun, Activity, Zap } from "lucide-react";
+import { useStore } from "../../store/useStore";
+import WalletButton from "../UI/WalletButton";
+import NetworkSelector from "../UI/NetworkSelector";
 
 const Header: React.FC = () => {
   const { isDarkMode, toggleTheme, botActive } = useStore();
@@ -24,11 +24,15 @@ const Header: React.FC = () => {
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2 ml-8">
-            <Activity className={`w-4 h-4 ${botActive ? 'text-success-500' : 'text-gray-400'}`} />
-            <span className={`text-sm font-medium ${botActive ? 'text-success-500' : 'text-gray-400'}`}>
-              {botActive ? 'Bot Active' : 'Bot Inactive'}
+            <Activity
+              className={`w-4 h-4 ${botActive ? "text-success-500" : "text-gray-400"}`}
+            />
+            <span
+              className={`text-sm font-medium ${botActive ? "text-success-500" : "text-gray-400"}`}
+            >
+              {botActive ? "Bot Active" : "Bot Inactive"}
             </span>
           </div>
         </div>
@@ -36,7 +40,7 @@ const Header: React.FC = () => {
         <div className="flex items-center space-x-4">
           <NetworkSelector />
           <WalletButton />
-          
+
           <button
             onClick={toggleTheme}
             className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"

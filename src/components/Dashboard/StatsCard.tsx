@@ -1,29 +1,29 @@
-import React from 'react';
-import { DivideIcon as LucideIcon } from 'lucide-react';
+import React from "react";
+import { DivideIcon as LucideIcon } from "lucide-react";
 
 interface StatsCardProps {
   title: string;
   value: string | number;
   change?: number;
   icon: LucideIcon;
-  color?: 'blue' | 'green' | 'red' | 'yellow';
+  color?: "blue" | "green" | "red" | "yellow";
 }
 
-const StatsCard: React.FC<StatsCardProps> = ({ 
-  title, 
-  value, 
-  change, 
-  icon: Icon, 
-  color = 'blue' 
+const StatsCard: React.FC<StatsCardProps> = ({
+  title,
+  value,
+  change,
+  icon: Icon,
+  color = "blue",
 }) => {
   const colorClasses = {
-    blue: 'bg-blue-500',
-    green: 'bg-green-500',
-    red: 'bg-red-500',
-    yellow: 'bg-yellow-500',
+    blue: "bg-blue-500",
+    green: "bg-green-500",
+    red: "bg-red-500",
+    yellow: "bg-yellow-500",
   };
 
-  const changeColor = change && change > 0 ? 'text-green-500' : 'text-red-500';
+  const changeColor = change && change > 0 ? "text-green-500" : "text-red-500";
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
@@ -37,7 +37,8 @@ const StatsCard: React.FC<StatsCardProps> = ({
           </p>
           {change !== undefined && (
             <p className={`text-sm mt-1 ${changeColor}`}>
-              {change > 0 ? '+' : ''}{change.toFixed(2)}%
+              {change > 0 ? "+" : ""}
+              {change.toFixed(2)}%
             </p>
           )}
         </div>

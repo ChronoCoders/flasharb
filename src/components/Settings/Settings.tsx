@@ -1,6 +1,6 @@
-import React from 'react';
-import { Save, RefreshCw, AlertTriangle, Shield } from 'lucide-react';
-import { useStore } from '../../store/useStore';
+import React from "react";
+import { Save, RefreshCw, AlertTriangle, Shield } from "lucide-react";
+import { useStore } from "../../store/useStore";
 
 const Settings: React.FC = () => {
   const { tradingConfig, setTradingConfig } = useStore();
@@ -72,7 +72,7 @@ const Settings: React.FC = () => {
                 className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -87,7 +87,7 @@ const Settings: React.FC = () => {
                 className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -122,7 +122,7 @@ const Settings: React.FC = () => {
                 className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Profit Threshold Alerts
@@ -133,7 +133,7 @@ const Settings: React.FC = () => {
                 className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Error Notifications
@@ -157,12 +157,12 @@ const Settings: React.FC = () => {
               <Save className="w-4 h-4" />
               <span>Export Trading Data</span>
             </button>
-            
+
             <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
               <RefreshCw className="w-4 h-4" />
               <span>Reset Configuration</span>
             </button>
-            
+
             <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">
               <AlertTriangle className="w-4 h-4" />
               <span>Clear All Data</span>
@@ -178,20 +178,25 @@ const Settings: React.FC = () => {
         </h4>
         <div className="text-sm text-red-700 dark:text-red-300 space-y-2">
           <p>
-            <strong>Financial Risk:</strong> Flash loan arbitrage trading involves substantial risk of financial loss. 
-            Only trade with funds you can afford to lose completely.
+            <strong>Financial Risk:</strong> Flash loan arbitrage trading
+            involves substantial risk of financial loss. Only trade with funds
+            you can afford to lose completely.
           </p>
           <p>
-            <strong>Smart Contract Risk:</strong> Interacting with DeFi protocols carries risks including smart contract bugs, 
-            exploits, and protocol failures that could result in total loss of funds.
+            <strong>Smart Contract Risk:</strong> Interacting with DeFi
+            protocols carries risks including smart contract bugs, exploits, and
+            protocol failures that could result in total loss of funds.
           </p>
           <p>
-            <strong>Regulatory Compliance:</strong> You are solely responsible for ensuring compliance with all applicable 
-            laws and regulations in your jurisdiction regarding cryptocurrency trading and DeFi activities.
+            <strong>Regulatory Compliance:</strong> You are solely responsible
+            for ensuring compliance with all applicable laws and regulations in
+            your jurisdiction regarding cryptocurrency trading and DeFi
+            activities.
           </p>
           <p>
-            <strong>No Liability:</strong> The developers of this application accept no liability for any losses, 
-            damages, or legal issues arising from the use of this software.
+            <strong>No Liability:</strong> The developers of this application
+            accept no liability for any losses, damages, or legal issues arising
+            from the use of this software.
           </p>
         </div>
       </div>

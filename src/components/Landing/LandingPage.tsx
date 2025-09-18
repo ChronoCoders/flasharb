@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  Zap, 
-  TrendingUp, 
-  Shield, 
-  Clock, 
-  DollarSign, 
+import React, { useEffect, useState } from "react";
+import {
+  Zap,
+  TrendingUp,
+  Shield,
+  Clock,
+  DollarSign,
   BarChart3,
   ArrowRight,
   CheckCircle,
   Star,
   Activity,
   Target,
-  Layers
-} from 'lucide-react';
-import { useStore } from '../../store/useStore';
-import WalletButton from '../UI/WalletButton';
+  Layers,
+} from "lucide-react";
+import { useStore } from "../../store/useStore";
+import WalletButton from "../UI/WalletButton";
 
 const LandingPage: React.FC = () => {
   const { wallet, setCurrentView } = useStore();
@@ -22,7 +22,7 @@ const LandingPage: React.FC = () => {
     totalVolume: 0,
     successRate: 0,
     avgProfit: 0,
-    activeUsers: 0
+    activeUsers: 0,
   });
 
   // Animate stats on mount
@@ -31,7 +31,7 @@ const LandingPage: React.FC = () => {
       totalVolume: 2847392,
       successRate: 94.7,
       avgProfit: 127.45,
-      activeUsers: 1247
+      activeUsers: 1247,
     };
 
     const duration = 2000;
@@ -48,7 +48,7 @@ const LandingPage: React.FC = () => {
         totalVolume: Math.floor(targets.totalVolume * easeOut),
         successRate: Math.floor(targets.successRate * easeOut * 10) / 10,
         avgProfit: Math.floor(targets.avgProfit * easeOut * 100) / 100,
-        activeUsers: Math.floor(targets.activeUsers * easeOut)
+        activeUsers: Math.floor(targets.activeUsers * easeOut),
       });
 
       if (currentStep >= steps) {
@@ -62,65 +62,72 @@ const LandingPage: React.FC = () => {
   // Redirect to dashboard if wallet is connected
   useEffect(() => {
     if (wallet.connected) {
-      setCurrentView('dashboard');
+      setCurrentView("dashboard");
     }
   }, [wallet.connected, setCurrentView]);
 
   const features = [
     {
       icon: Zap,
-      title: 'Lightning Fast Execution',
-      description: 'Execute arbitrage trades in milliseconds with our optimized flash loan engine'
+      title: "Lightning Fast Execution",
+      description:
+        "Execute arbitrage trades in milliseconds with our optimized flash loan engine",
     },
     {
       icon: Shield,
-      title: 'MEV Protection',
-      description: 'Advanced protection against front-running and sandwich attacks'
+      title: "MEV Protection",
+      description:
+        "Advanced protection against front-running and sandwich attacks",
     },
     {
       icon: TrendingUp,
-      title: 'Real-time Opportunities',
-      description: 'Live scanning across 15+ DEXs for profitable arbitrage opportunities'
+      title: "Real-time Opportunities",
+      description:
+        "Live scanning across 15+ DEXs for profitable arbitrage opportunities",
     },
     {
       icon: Target,
-      title: 'Smart Risk Management',
-      description: 'Automated risk controls and position sizing for optimal returns'
+      title: "Smart Risk Management",
+      description:
+        "Automated risk controls and position sizing for optimal returns",
     },
     {
       icon: BarChart3,
-      title: 'Advanced Analytics',
-      description: 'Comprehensive performance tracking and profit optimization'
+      title: "Advanced Analytics",
+      description: "Comprehensive performance tracking and profit optimization",
     },
     {
       icon: Layers,
-      title: 'Multi-Chain Support',
-      description: 'Trade across Ethereum, BSC, Polygon, and Arbitrum networks'
-    }
+      title: "Multi-Chain Support",
+      description: "Trade across Ethereum, BSC, Polygon, and Arbitrum networks",
+    },
   ];
 
   const testimonials = [
     {
-      name: 'Alex Chen',
-      role: 'DeFi Trader',
-      content: 'FlashArb has revolutionized my trading strategy. The automated arbitrage detection is incredibly accurate.',
+      name: "Alex Chen",
+      role: "DeFi Trader",
+      content:
+        "FlashArb has revolutionized my trading strategy. The automated arbitrage detection is incredibly accurate.",
       rating: 5,
-      profit: '+$12,847'
+      profit: "+$12,847",
     },
     {
-      name: 'Sarah Williams',
-      role: 'Crypto Fund Manager',
-      content: 'The risk management features give me confidence to run larger positions. Excellent platform.',
+      name: "Sarah Williams",
+      role: "Crypto Fund Manager",
+      content:
+        "The risk management features give me confidence to run larger positions. Excellent platform.",
       rating: 5,
-      profit: '+$34,291'
+      profit: "+$34,291",
     },
     {
-      name: 'Marcus Rodriguez',
-      role: 'Algorithmic Trader',
-      content: 'Best arbitrage bot I\'ve used. The execution speed and MEV protection are game-changers.',
+      name: "Marcus Rodriguez",
+      role: "Algorithmic Trader",
+      content:
+        "Best arbitrage bot I've used. The execution speed and MEV protection are game-changers.",
       rating: 5,
-      profit: '+$8,756'
-    }
+      profit: "+$8,756",
+    },
   ];
 
   return (
@@ -144,7 +151,9 @@ const LandingPage: React.FC = () => {
                 </div>
                 <div className="text-left">
                   <h1 className="text-4xl font-bold text-white">FlashArb</h1>
-                  <p className="text-blue-200 text-lg">Flash Loan Arbitrage Bot</p>
+                  <p className="text-blue-200 text-lg">
+                    Flash Loan Arbitrage Bot
+                  </p>
                 </div>
               </div>
             </div>
@@ -153,13 +162,15 @@ const LandingPage: React.FC = () => {
             <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
               Maximize Your
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                {' '}DeFi Profits
+                {" "}
+                DeFi Profits
               </span>
             </h2>
 
             <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-              The most advanced flash loan arbitrage platform. Automatically detect and execute 
-              profitable trades across multiple DEXs with institutional-grade risk management.
+              The most advanced flash loan arbitrage platform. Automatically
+              detect and execute profitable trades across multiple DEXs with
+              institutional-grade risk management.
             </p>
 
             {/* CTA Buttons */}
@@ -176,25 +187,33 @@ const LandingPage: React.FC = () => {
                 <div className="text-3xl md:text-4xl font-bold text-white mb-2">
                   ${animatedStats.totalVolume.toLocaleString()}
                 </div>
-                <div className="text-gray-400 text-sm uppercase tracking-wide">Total Volume</div>
+                <div className="text-gray-400 text-sm uppercase tracking-wide">
+                  Total Volume
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-3xl md:text-4xl font-bold text-green-400 mb-2">
                   {animatedStats.successRate}%
                 </div>
-                <div className="text-gray-400 text-sm uppercase tracking-wide">Success Rate</div>
+                <div className="text-gray-400 text-sm uppercase tracking-wide">
+                  Success Rate
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-3xl md:text-4xl font-bold text-blue-400 mb-2">
                   ${animatedStats.avgProfit}
                 </div>
-                <div className="text-gray-400 text-sm uppercase tracking-wide">Avg Profit</div>
+                <div className="text-gray-400 text-sm uppercase tracking-wide">
+                  Avg Profit
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-3xl md:text-4xl font-bold text-purple-400 mb-2">
                   {animatedStats.activeUsers.toLocaleString()}
                 </div>
-                <div className="text-gray-400 text-sm uppercase tracking-wide">Active Users</div>
+                <div className="text-gray-400 text-sm uppercase tracking-wide">
+                  Active Users
+                </div>
               </div>
             </div>
           </div>
@@ -209,8 +228,9 @@ const LandingPage: React.FC = () => {
               Why Choose FlashArb?
             </h3>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Built by DeFi experts for serious traders. Our platform combines cutting-edge technology 
-              with institutional-grade security and performance.
+              Built by DeFi experts for serious traders. Our platform combines
+              cutting-edge technology with institutional-grade security and
+              performance.
             </p>
           </div>
 
@@ -251,16 +271,33 @@ const LandingPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { pair: 'ETH/USDC', profit: '$127.45', apy: '23.4%', exchanges: ['Uniswap', 'SushiSwap'] },
-              { pair: 'WBTC/ETH', profit: '$89.32', apy: '18.7%', exchanges: ['1inch', 'Balancer'] },
-              { pair: 'USDT/DAI', profit: '$45.67', apy: '15.2%', exchanges: ['Curve', 'Uniswap'] }
+              {
+                pair: "ETH/USDC",
+                profit: "$127.45",
+                apy: "23.4%",
+                exchanges: ["Uniswap", "SushiSwap"],
+              },
+              {
+                pair: "WBTC/ETH",
+                profit: "$89.32",
+                apy: "18.7%",
+                exchanges: ["1inch", "Balancer"],
+              },
+              {
+                pair: "USDT/DAI",
+                profit: "$45.67",
+                apy: "15.2%",
+                exchanges: ["Curve", "Uniswap"],
+              },
             ].map((opp, index) => (
               <div
                 key={index}
                 className="p-6 bg-gradient-to-br from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-xl backdrop-blur-sm"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-lg font-semibold text-white">{opp.pair}</span>
+                  <span className="text-lg font-semibold text-white">
+                    {opp.pair}
+                  </span>
                   <div className="flex items-center space-x-1">
                     <Activity className="w-4 h-4 text-green-400" />
                     <span className="text-green-400 text-sm">Live</span>
@@ -269,15 +306,21 @@ const LandingPage: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Potential Profit</span>
-                    <span className="text-green-400 font-semibold">{opp.profit}</span>
+                    <span className="text-green-400 font-semibold">
+                      {opp.profit}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">APY</span>
-                    <span className="text-blue-400 font-semibold">{opp.apy}</span>
+                    <span className="text-blue-400 font-semibold">
+                      {opp.apy}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Exchanges</span>
-                    <span className="text-white text-sm">{opp.exchanges.join(' → ')}</span>
+                    <span className="text-white text-sm">
+                      {opp.exchanges.join(" → ")}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -306,7 +349,10 @@ const LandingPage: React.FC = () => {
               >
                 <div className="flex items-center mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    <Star
+                      key={i}
+                      className="w-5 h-5 text-yellow-400 fill-current"
+                    />
                   ))}
                 </div>
                 <p className="text-gray-300 mb-6 leading-relaxed">
@@ -314,8 +360,12 @@ const LandingPage: React.FC = () => {
                 </p>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-white font-semibold">{testimonial.name}</div>
-                    <div className="text-gray-400 text-sm">{testimonial.role}</div>
+                    <div className="text-white font-semibold">
+                      {testimonial.name}
+                    </div>
+                    <div className="text-gray-400 text-sm">
+                      {testimonial.role}
+                    </div>
                   </div>
                   <div className="text-green-400 font-bold text-lg">
                     {testimonial.profit}
@@ -334,7 +384,8 @@ const LandingPage: React.FC = () => {
             Ready to Start Earning?
           </h3>
           <p className="text-xl text-gray-300 mb-8">
-            Connect your wallet and start executing profitable arbitrage trades in minutes.
+            Connect your wallet and start executing profitable arbitrage trades
+            in minutes.
           </p>
           <div className="flex justify-center">
             <WalletButton variant="landing" size="large" />
