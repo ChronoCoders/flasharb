@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { TrendingUp, TrendingDown, ExternalLink } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { TrendingUp, TrendingDown, ExternalLink } from "lucide-react";
 
 interface PriceData {
   token: string;
@@ -21,12 +21,12 @@ const PriceComparisonTable: React.FC = () => {
   useEffect(() => {
     const generateMockPriceData = (): PriceData[] => {
       const tokens = [
-        { token: 'Ethereum', symbol: 'ETH', basePrice: 2450 },
-        { token: 'USD Coin', symbol: 'USDC', basePrice: 1.0001 },
-        { token: 'Tether', symbol: 'USDT', basePrice: 0.9998 },
-        { token: 'Dai', symbol: 'DAI', basePrice: 1.0003 },
-        { token: 'Wrapped Bitcoin', symbol: 'WBTC', basePrice: 43250 },
-        { token: 'Chainlink', symbol: 'LINK', basePrice: 14.75 },
+        { token: "Ethereum", symbol: "ETH", basePrice: 2450 },
+        { token: "USD Coin", symbol: "USDC", basePrice: 1.0001 },
+        { token: "Tether", symbol: "USDT", basePrice: 0.9998 },
+        { token: "Dai", symbol: "DAI", basePrice: 1.0003 },
+        { token: "Wrapped Bitcoin", symbol: "WBTC", basePrice: 43250 },
+        { token: "Chainlink", symbol: "LINK", basePrice: 14.75 },
       ];
 
       return tokens.map(({ token, symbol, basePrice }) => {
@@ -35,12 +35,12 @@ const PriceComparisonTable: React.FC = () => {
         const uniswapV3 = basePrice * (1 + (Math.random() - 0.5) * variance);
         const sushiSwap = basePrice * (1 + (Math.random() - 0.5) * variance);
         const oneInch = basePrice * (1 + (Math.random() - 0.5) * variance);
-        
+
         const prices = [uniswapV2, uniswapV3, sushiSwap, oneInch];
         const bestPrice = Math.max(...prices);
         const worstPrice = Math.min(...prices);
         const spread = ((bestPrice - worstPrice) / worstPrice) * 100;
-        
+
         return {
           token,
           symbol,
@@ -67,16 +67,20 @@ const PriceComparisonTable: React.FC = () => {
   }, []);
 
   const formatPrice = (price: number, symbol: string) => {
-    if (symbol === 'WBTC' || symbol === 'ETH') {
+    if (symbol === "WBTC" || symbol === "ETH") {
       return `$${price.toFixed(2)}`;
     }
     return `$${price.toFixed(4)}`;
   };
 
-  const getPriceColor = (price: number, bestPrice: number, worstPrice: number) => {
-    if (price === bestPrice) return 'text-green-500 font-semibold';
-    if (price === worstPrice) return 'text-red-500 font-semibold';
-    return 'text-gray-900 dark:text-white';
+  const getPriceColor = (
+    price: number,
+    bestPrice: number,
+    worstPrice: number,
+  ) => {
+    if (price === bestPrice) return "text-green-500 font-semibold";
+    if (price === worstPrice) return "text-red-500 font-semibold";
+    return "text-gray-900 dark:text-white";
   };
 
   if (loading) {
@@ -86,7 +90,10 @@ const PriceComparisonTable: React.FC = () => {
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div
+                key={i}
+                className="h-12 bg-gray-200 dark:bg-gray-700 rounded"
+              ></div>
             ))}
           </div>
         </div>
@@ -103,11 +110,13 @@ const PriceComparisonTable: React.FC = () => {
           </h3>
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">Live Data</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Live Data
+            </span>
           </div>
         </div>
       </div>
-      
+
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50 dark:bg-gray-700">
@@ -137,7 +146,10 @@ const PriceComparisonTable: React.FC = () => {
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {priceData.map((data) => (
-              <tr key={data.symbol} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+              <tr
+                key={data.symbol}
+                className="hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -148,16 +160,24 @@ const PriceComparisonTable: React.FC = () => {
                     </div>
                   </div>
                 </td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${getPriceColor(data.uniswapV2, data.bestPrice, data.worstPrice)}`}>
+                <td
+                  className={`px-6 py-4 whitespace-nowrap text-sm ${getPriceColor(data.uniswapV2, data.bestPrice, data.worstPrice)}`}
+                >
                   {formatPrice(data.uniswapV2, data.symbol)}
                 </td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${getPriceColor(data.uniswapV3, data.bestPrice, data.worstPrice)}`}>
+                <td
+                  className={`px-6 py-4 whitespace-nowrap text-sm ${getPriceColor(data.uniswapV3, data.bestPrice, data.worstPrice)}`}
+                >
                   {formatPrice(data.uniswapV3, data.symbol)}
                 </td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${getPriceColor(data.sushiSwap, data.bestPrice, data.worstPrice)}`}>
+                <td
+                  className={`px-6 py-4 whitespace-nowrap text-sm ${getPriceColor(data.sushiSwap, data.bestPrice, data.worstPrice)}`}
+                >
                   {formatPrice(data.sushiSwap, data.symbol)}
                 </td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${getPriceColor(data.oneInch, data.bestPrice, data.worstPrice)}`}>
+                <td
+                  className={`px-6 py-4 whitespace-nowrap text-sm ${getPriceColor(data.oneInch, data.bestPrice, data.worstPrice)}`}
+                >
                   {formatPrice(data.oneInch, data.symbol)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -167,7 +187,9 @@ const PriceComparisonTable: React.FC = () => {
                     ) : (
                       <TrendingDown className="w-4 h-4 text-gray-400 mr-1" />
                     )}
-                    <span className={`text-sm font-medium ${data.spread > 0.1 ? 'text-green-500' : 'text-gray-500'}`}>
+                    <span
+                      className={`text-sm font-medium ${data.spread > 0.1 ? "text-green-500" : "text-gray-500"}`}
+                    >
                       {data.spread.toFixed(3)}%
                     </span>
                   </div>

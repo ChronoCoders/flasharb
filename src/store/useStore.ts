@@ -1,6 +1,12 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { ArbitrageOpportunity, TradingConfig, Portfolio, Transaction, WalletState } from '../types';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import {
+  ArbitrageOpportunity,
+  TradingConfig,
+  Portfolio,
+  Transaction,
+  WalletState,
+} from "../types";
 
 interface AppState {
   // Theme
@@ -9,7 +15,9 @@ interface AppState {
 
   // Wallet
   wallet: WalletState;
-  setWallet: (wallet: WalletState | ((prev: WalletState) => WalletState)) => void;
+  setWallet: (
+    wallet: WalletState | ((prev: WalletState) => WalletState),
+  ) => void;
   isNetworkSwitching: boolean;
   setIsNetworkSwitching: (switching: boolean) => void;
   hasEverConnected: boolean;
@@ -18,26 +26,28 @@ interface AppState {
   // Trading
   tradingConfig: TradingConfig;
   setTradingConfig: (config: Partial<TradingConfig>) => void;
-  
+
   // Opportunities
   opportunities: ArbitrageOpportunity[];
   setOpportunities: (opportunities: ArbitrageOpportunity[]) => void;
-  
+
   // Portfolio
   portfolio: Portfolio;
   setPortfolio: (portfolio: Portfolio) => void;
-  
+
   // Transactions
   transactions: Transaction[];
   addTransaction: (transaction: Transaction) => void;
-  
+
   // Bot Status
   botActive: boolean;
   setBotActive: (active: boolean) => void;
-  
+
   // Current view
-  currentView: 'dashboard' | 'trading' | 'history' | 'settings';
-  setCurrentView: (view: 'dashboard' | 'trading' | 'history' | 'settings') => void;
+  currentView: "dashboard" | "trading" | "history" | "settings";
+  setCurrentView: (
+    view: "dashboard" | "trading" | "history" | "settings",
+  ) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -54,32 +64,36 @@ export const useStore = create<AppState>()(
         network: null,
         connected: false,
       },
-      setWallet: (wallet) => set((state) => {
-        const newWallet = typeof wallet === 'function' ? wallet(state.wallet) : wallet;
-        return { 
-          wallet: newWallet,
-          hasEverConnected: newWallet.connected || state.hasEverConnected
-        };
-      }),
+      setWallet: (wallet) =>
+        set((state) => {
+          const newWallet =
+            typeof wallet === "function" ? wallet(state.wallet) : wallet;
+          return {
+            wallet: newWallet,
+            hasEverConnected: newWallet.connected || state.hasEverConnected,
+          };
+        }),
       isNetworkSwitching: false,
-      setIsNetworkSwitching: (switching) => set({ isNetworkSwitching: switching }),
+      setIsNetworkSwitching: (switching) =>
+        set({ isNetworkSwitching: switching }),
       hasEverConnected: false,
       setHasEverConnected: (connected) => set({ hasEverConnected: connected }),
 
       // Trading
       tradingConfig: {
-        selectedTokens: ['ETH', 'USDC', 'USDT', 'DAI'],
-        selectedExchanges: ['Uniswap V2', 'Uniswap V3', 'SushiSwap'],
+        selectedTokens: ["ETH", "USDC", "USDT", "DAI"],
+        selectedExchanges: ["Uniswap V2", "Uniswap V3", "SushiSwap"],
         minProfitThreshold: 0.5,
         maxTransactionAmount: 10,
         slippageTolerance: 0.5,
-        gasStrategy: 'standard',
+        gasStrategy: "standard",
         autoExecute: false,
         maxDailyLoss: 100,
       },
-      setTradingConfig: (config) => set((state) => ({
-        tradingConfig: { ...state.tradingConfig, ...config }
-      })),
+      setTradingConfig: (config) =>
+        set((state) => ({
+          tradingConfig: { ...state.tradingConfig, ...config },
+        })),
 
       // Opportunities
       opportunities: [],
@@ -99,26 +113,27 @@ export const useStore = create<AppState>()(
 
       // Transactions
       transactions: [],
-      addTransaction: (transaction) => set((state) => ({
-        transactions: [transaction, ...state.transactions]
-      })),
+      addTransaction: (transaction) =>
+        set((state) => ({
+          transactions: [transaction, ...state.transactions],
+        })),
 
       // Bot Status
       botActive: false,
       setBotActive: (active) => set({ botActive: active }),
 
       // Current view
-      currentView: 'dashboard',
+      currentView: "dashboard",
       setCurrentView: (view) => set({ currentView: view }),
     }),
     {
-      name: 'flasharb-storage',
+      name: "flasharb-storage",
       partialize: (state) => ({
         isDarkMode: state.isDarkMode,
         hasEverConnected: state.hasEverConnected,
         currentView: state.currentView,
         tradingConfig: state.tradingConfig,
       }),
-    }
-  )
+    },
+  ),
 );

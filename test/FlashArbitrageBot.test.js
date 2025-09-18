@@ -15,7 +15,11 @@ describe("FlashArbitrageBot", function () {
 
     // Deploy mock token
     const MockToken = await ethers.getContractFactory("MockERC20");
-    mockToken = await MockToken.deploy("Mock Token", "MOCK", ethers.utils.parseEther("1000000"));
+    mockToken = await MockToken.deploy(
+      "Mock Token",
+      "MOCK",
+      ethers.utils.parseEther("1000000"),
+    );
 
     // Deploy PriceOracle
     const PriceOracle = await ethers.getContractFactory("PriceOracle");
@@ -30,13 +34,14 @@ describe("FlashArbitrageBot", function () {
     dexAggregator = await DEXAggregator.deploy(
       "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", // Uniswap V2
       "0xE592427A0AEce92De3Edee1F18E0157C05861564", // Uniswap V3
-      "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F"  // SushiSwap
+      "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F", // SushiSwap
     );
 
     // Deploy FlashArbitrageBot (using mock address for Aave)
-    const FlashArbitrageBot = await ethers.getContractFactory("FlashArbitrageBot");
+    const FlashArbitrageBot =
+      await ethers.getContractFactory("FlashArbitrageBot");
     flashArbitrageBot = await FlashArbitrageBot.deploy(
-      "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e" // Aave Pool Addresses Provider
+      "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e", // Aave Pool Addresses Provider
     );
   });
 
@@ -46,11 +51,14 @@ describe("FlashArbitrageBot", function () {
     });
 
     it("Should authorize the deployer", async function () {
-      expect(await flashArbitrageBot.authorizedExecutors(owner.address)).to.be.true;
+      expect(await flashArbitrageBot.authorizedExecutors(owner.address)).to.be
+        .true;
     });
 
     it("Should set correct initial risk parameters", async function () {
-      expect(await flashArbitrageBot.maxDailyLoss()).to.equal(ethers.utils.parseEther("1000"));
+      expect(await flashArbitrageBot.maxDailyLoss()).to.equal(
+        ethers.utils.parseEther("1000"),
+      );
       expect(await flashArbitrageBot.maxSlippage()).to.equal(300); // 3%
       expect(await flashArbitrageBot.minProfitThreshold()).to.equal(50); // 0.5%
     });
@@ -59,12 +67,15 @@ describe("FlashArbitrageBot", function () {
   describe("Authorization", function () {
     it("Should allow owner to set authorized executors", async function () {
       await flashArbitrageBot.setAuthorizedExecutor(user.address, true);
-      expect(await flashArbitrageBot.authorizedExecutors(user.address)).to.be.true;
+      expect(await flashArbitrageBot.authorizedExecutors(user.address)).to.be
+        .true;
     });
 
     it("Should not allow non-owner to set authorized executors", async function () {
       await expect(
-        flashArbitrageBot.connect(user).setAuthorizedExecutor(user.address, true)
+        flashArbitrageBot
+          .connect(user)
+          .setAuthorizedExecutor(user.address, true),
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
   });
@@ -74,10 +85,12 @@ describe("FlashArbitrageBot", function () {
       await flashArbitrageBot.updateRiskParams(
         ethers.utils.parseEther("500"), // maxDailyLoss
         500, // maxSlippage (5%)
-        100  // minProfitThreshold (1%)
+        100, // minProfitThreshold (1%)
       );
 
-      expect(await flashArbitrageBot.maxDailyLoss()).to.equal(ethers.utils.parseEther("500"));
+      expect(await flashArbitrageBot.maxDailyLoss()).to.equal(
+        ethers.utils.parseEther("500"),
+      );
       expect(await flashArbitrageBot.maxSlippage()).to.equal(500);
       expect(await flashArbitrageBot.minProfitThreshold()).to.equal(100);
     });
@@ -103,33 +116,49 @@ describe("FlashArbitrageBot", function () {
 
     it("Should allow emergency withdrawal", async function () {
       // Send some tokens to the contract first
-      await mockToken.transfer(flashArbitrageBot.address, ethers.utils.parseEther("100"));
-      
+      await mockToken.transfer(
+        flashArbitrageBot.address,
+        ethers.utils.parseEther("100"),
+      );
+
       const initialBalance = await mockToken.balanceOf(owner.address);
       await flashArbitrageBot.emergencyWithdraw(mockToken.address);
       const finalBalance = await mockToken.balanceOf(owner.address);
-      
-      expect(finalBalance.sub(initialBalance)).to.equal(ethers.utils.parseEther("100"));
+
+      expect(finalBalance.sub(initialBalance)).to.equal(
+        ethers.utils.parseEther("100"),
+      );
     });
   });
 
   describe("Balance Management", function () {
     it("Should return correct contract balance", async function () {
-      await mockToken.transfer(flashArbitrageBot.address, ethers.utils.parseEther("50"));
-      
+      await mockToken.transfer(
+        flashArbitrageBot.address,
+        ethers.utils.parseEther("50"),
+      );
+
       const balance = await flashArbitrageBot.getBalance(mockToken.address);
       expect(balance).to.equal(ethers.utils.parseEther("50"));
     });
 
     it("Should allow profit withdrawal", async function () {
       // Send tokens to contract
-      await mockToken.transfer(flashArbitrageBot.address, ethers.utils.parseEther("100"));
-      
+      await mockToken.transfer(
+        flashArbitrageBot.address,
+        ethers.utils.parseEther("100"),
+      );
+
       const initialBalance = await mockToken.balanceOf(owner.address);
-      await flashArbitrageBot.withdrawProfits(mockToken.address, ethers.utils.parseEther("50"));
+      await flashArbitrageBot.withdrawProfits(
+        mockToken.address,
+        ethers.utils.parseEther("50"),
+      );
       const finalBalance = await mockToken.balanceOf(owner.address);
-      
-      expect(finalBalance.sub(initialBalance)).to.equal(ethers.utils.parseEther("50"));
+
+      expect(finalBalance.sub(initialBalance)).to.equal(
+        ethers.utils.parseEther("50"),
+      );
     });
   });
 });

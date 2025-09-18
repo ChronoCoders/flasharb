@@ -13,7 +13,7 @@ export interface ArbitrageOpportunity {
   netProfit: number;
   amount: number;
   timestamp: number;
-  status: 'active' | 'executing' | 'completed' | 'failed';
+  status: "active" | "executing" | "completed" | "failed";
   exchanges: string[];
   slippage?: number;
 }
@@ -35,7 +35,7 @@ export interface TradingConfig {
   minProfitThreshold: number;
   maxTransactionAmount: number;
   slippageTolerance: number;
-  gasStrategy: 'slow' | 'standard' | 'fast' | 'custom';
+  gasStrategy: "slow" | "standard" | "fast" | "custom";
   customGasPrice?: number;
   autoExecute: boolean;
   maxDailyLoss: number;
@@ -54,13 +54,13 @@ export interface Portfolio {
 export interface Transaction {
   id: string;
   hash: string;
-  type: 'arbitrage' | 'deposit' | 'withdrawal';
+  type: "arbitrage" | "deposit" | "withdrawal";
   tokenPair: string;
   amount: number;
   profit: number;
   gasUsed: number;
   gasCost: number;
-  status: 'pending' | 'success' | 'failed';
+  status: "pending" | "success" | "failed";
   timestamp: number;
   exchanges: string[];
 }

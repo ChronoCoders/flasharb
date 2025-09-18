@@ -1,17 +1,17 @@
-import React from 'react';
-import { ExternalLink, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { useStore } from '../../store/useStore';
+import React from "react";
+import { ExternalLink, CheckCircle, XCircle, Clock } from "lucide-react";
+import { useStore } from "../../store/useStore";
 
 const TransactionHistory: React.FC = () => {
   const { transactions } = useStore();
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'success':
+      case "success":
         return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'failed':
+      case "failed":
         return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'pending':
+      case "pending":
         return <Clock className="w-4 h-4 text-yellow-500" />;
       default:
         return null;
@@ -20,14 +20,14 @@ const TransactionHistory: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'success':
-        return 'text-green-500';
-      case 'failed':
-        return 'text-red-500';
-      case 'pending':
-        return 'text-yellow-500';
+      case "success":
+        return "text-green-500";
+      case "failed":
+        return "text-red-500";
+      case "pending":
+        return "text-yellow-500";
       default:
-        return 'text-gray-500';
+        return "text-gray-500";
     }
   };
 
@@ -71,13 +71,19 @@ const TransactionHistory: React.FC = () => {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td
+                    colSpan={8}
+                    className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
+                  >
                     No transactions yet. Start trading to see your history here.
                   </td>
                 </tr>
               ) : (
                 transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <tr
+                    key={tx.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {tx.hash.slice(0, 10)}...{tx.hash.slice(-8)}
@@ -92,8 +98,10 @@ const TransactionHistory: React.FC = () => {
                       {tx.tokenPair}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-sm font-medium ${tx.profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {tx.profit >= 0 ? '+' : ''}${tx.profit.toFixed(2)}
+                      <span
+                        className={`text-sm font-medium ${tx.profit >= 0 ? "text-green-500" : "text-red-500"}`}
+                      >
+                        {tx.profit >= 0 ? "+" : ""}${tx.profit.toFixed(2)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -102,7 +110,9 @@ const TransactionHistory: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-2">
                         {getStatusIcon(tx.status)}
-                        <span className={`text-sm font-medium ${getStatusColor(tx.status)}`}>
+                        <span
+                          className={`text-sm font-medium ${getStatusColor(tx.status)}`}
+                        >
                           {tx.status}
                         </span>
                       </div>
